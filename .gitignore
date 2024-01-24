@@ -1,1 +1,17 @@
 .env
+*.o
+*.a
+*.so
+*.test
+*.prof
+*.out
+
+vendor/
+tmp/
+
+# IDE specific files
+.vscode
+.idea
+
+# build output
+air
