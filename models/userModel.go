@@ -7,5 +7,4 @@ type User struct {
 	Fname string
 	Lname string
 	Bio string
-	Tag string
 }
