@@ -4,7 +4,7 @@ import "gorm.io/gorm"
 
 type Group struct {
 	gorm.Model
-	Gname string `json`
+	Gname string 
 	Owner_id int
 	Topic string
 	Description string
