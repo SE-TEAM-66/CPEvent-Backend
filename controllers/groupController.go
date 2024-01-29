@@ -85,3 +85,58 @@ func GroupUpdate(c *gin.Context){
 		"group": group,
 	})
 }
+
+func GetSingleGroup(c *gin.Context){
+	//Get id from param
+	id := c.Param("gid")
+
+	// Find Group
+	var group models.Group
+	result := initializers.DB.First(&group, id)
+
+	//Return on error
+	if result.Error != nil {
+		c.Status(400)
+		return
+	}
+
+	//Response 
+	c.JSON(200, gin.H{
+		"group": group,
+	})
+
+}
+
+func GetAllGroups(c * gin.Context){
+	//Get all groups
+	var groups []models.Group
+	result := initializers.DB.Find(&groups)
+
+	//Return on error
+	if result.Error != nil {
+		c.Status(400)
+		return
+	}
+
+	// Response
+	c.JSON(200, gin.H{
+		"groups": groups,
+	})
+}
+
+func GroupDelete(c *gin.Context){
+	// Get data from id
+	id := c.Param("gid")
+
+	// Delete group
+	result := initializers.DB.Delete(&models.Group{},id)
+
+	//Return on error
+	if result.Error != nil {
+		c.Status(400)
+		return
+	}
+
+	// Response
+	c.Status(200)
+}
