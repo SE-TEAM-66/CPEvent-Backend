@@ -73,7 +73,7 @@ func Login(c *gin.Context) {
 		"sub": user.ID,
 		"exp": time.Now().Add(time.Hour * 24 * 30).Unix(),
 	})
-	//sign n get completeed encoded token
+	//sign n get completed encoded token
 	tokenString, err := token.SignedString([]byte(os.Getenv("SECRET")))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "failed to create token"})
@@ -91,4 +91,14 @@ func Validate(c *gin.Context) {
 		"message": user,
 	})
 	fmt.Println(user.(models.User).Fname)
+}
+
+func Getusers(c *gin.Context) {
+	var users []models.User
+	initializers.DB.Find(&users)
+
+	//Res
+	c.JSON(200, gin.H{
+		"users": users,
+	})
 }
