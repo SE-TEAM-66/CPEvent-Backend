@@ -21,5 +21,6 @@ func main() {
 	r.GET("group/:gid/position", controllers.GetPosition)
 	r.POST("group/:gid/position", controllers.AddPosition)
 	r.DELETE("group/:gid/position/:pid", controllers.DeletePosition)
+	r.PUT("group/:gid/position/:pid", controllers.EditPosition)
 	r.Run()
 }
