@@ -3,7 +3,7 @@ package models
 import "gorm.io/gorm"
 
 type Profile struct {
-	gorm.Model
+	gorm.Model 
 	ProfilePicture string
 	Fname string
 	Lname string
@@ -13,4 +13,5 @@ type Profile struct {
 	Email string
 	Facebook string
 	Line string
+	UserID uint
 }
