@@ -8,4 +8,5 @@ type User struct {
 	Lname string
 	Bio string
 	Tag string
+	Groups []*Group `gorm:"many2many:group_member;"`
 }
