@@ -4,66 +4,98 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/SE-TEAM-66/CPEvent-Backend/initializers"
 	"github.com/SE-TEAM-66/CPEvent-Backend/models"
 	"github.com/gin-gonic/gin"
 )
 
 func GetPosition(c *gin.Context) {
+	// Get request
 	gid, err := strconv.ParseUint(c.Param("gid"), 10, 64)
 	if err != nil {
-		c.Status(http.StatusBadRequest)
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid GroupID!"})
 		return
 	}
-	positions, err := models.GetPosition(uint(gid))
-	if err != nil {
-		c.Status(http.StatusInternalServerError)
-		return
-	}
-	c.JSON(http.StatusOK, gin.H{"data": positions})
-}
 
-func AddPosition(c *gin.Context) {
-	gid, err := strconv.ParseUint(c.Param("gid"), 10, 64)
-	if err != nil {
-		c.Status(http.StatusBadRequest)
+	// Model Call
+	var group models.Group
+	if err := initializers.DB.Where("id = ?", gid).First(&group).Error; err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "GroupID not found!"})
 		return
 	}
-	var position models.Position
-	if err := c.ShouldBindJSON(&position); err != nil {
+
+	var positions []models.Position
+	if err := initializers.DB.Where("group_id = ?", gid).Find(&positions).Error; err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	err = models.AddPosition(uint(gid), position.Role)
+	// return
+	c.JSON(http.StatusOK, gin.H{"data": positions})
+}
+
+func AddPosition(c *gin.Context) {
+	// Get request
+	gid, err := strconv.ParseUint(c.Param("gid"), 10, 64)
 	if err != nil {
-		c.Status(http.StatusInternalServerError)
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid GroupID!"})
 		return
 	}
-	c.Status(http.StatusOK)
+	var reqPos models.Position
+	if err := c.ShouldBindJSON(&reqPos); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Model Call
+	var group models.Group
+	if err := initializers.DB.Where("id = ?", gid).First(&group).Error; err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "GroupID not found!"})
+		return
+	}
+
+	newPos := models.Position{Role: reqPos.Role, GroupID: uint(gid)}
+	initializers.DB.Model(&group).Association("Positions").Append(&newPos)
+
+	// return
+	c.JSON(http.StatusOK, gin.H{"data": newPos})
 }
 
 func DeletePosition(c *gin.Context) {
+	// Get request
 	gid, err := strconv.ParseUint(c.Param("gid"), 10, 64)
 	if err != nil {
-		c.Status(http.StatusBadRequest)
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid GroupID!"})
 		return
 	}
 	pid, err := strconv.ParseUint(c.Param("pid"), 10, 64)
 	if err != nil {
-		c.Status(http.StatusBadRequest)
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid PrositionID!"})
 		return
 	}
 
-	err = models.ValidPosition(uint(gid), uint(pid))
-	if err != nil {
-		c.Status(http.StatusBadRequest)
+	if err := validPosition(uint(gid), uint(pid)); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "GroupID or PrositionID incorrect!"})
 		return
 	}
 
-	err = models.DeletePosition(uint(pid))
-	if err != nil {
-		c.Status(http.StatusInternalServerError)
+	// Model Call
+	var position models.Position
+
+	if err := initializers.DB.Delete(&position, pid).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
+
+	// return
 	c.Status(http.StatusOK)
+}
+
+func validPosition(gid uint, pid uint) error {
+	var positions []models.Position
+	result := initializers.DB.Where("group_id = ?", gid).First(&positions, pid)
+	if result.Error != nil {
+		return result.Error
+	}
+	return nil
 }
