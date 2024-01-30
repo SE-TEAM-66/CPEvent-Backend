@@ -1,0 +1,53 @@
+<!-- templates/index.html -->
+<!doctype html>
+<html>
+<head>
+    <title>Google SignIn</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"> <!-- load bulma css -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css"> <!-- load fontawesome -->
+    <style>
+        body        { padding-top:70px; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="jumbotron text-center text-success">
+        <h1><span class="fa fa-lock"></span> Social Authentication</h1>
+        <p>Login or Register with:</p>
+        <a href="/auth/google" class="btn btn-danger"><span class="fa fa-google"></span> SignIn with Google</a>
+    </div>
+</div>
+</body>
+</html> 
+After it we will create an Html file under path templates/success.html, it will be used to show the user profile information we will get after authenticated by google
+
+<!-- templates/success.html -->
+<!doctype html>
+<html>
+  <head>
+    <title>Google SignIn</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"> <!-- load bulma css -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css"> <!-- load fontawesome -->
+      <style>
+          body        { padding-top:70px; }
+      </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="jumbotron">
+          <h1 class="text-success  text-center"><span class="fa fa-user"></span> Profile Information</h1>
+          <div class="row">
+            <div class="col-sm-6">
+                <div class="well">
+                        <p>
+                            <strong>Id</strong>: {{.UserID}}<br>
+                            <strong>Email</strong>: {{.Email}}<br>
+                            <strong>Name</strong>: {{.Name}}
+                        </p>
+                </div>
+            </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
