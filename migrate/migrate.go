@@ -16,4 +16,5 @@ func main() {
 
 func groupDB() {
 	initializers.DB.AutoMigrate(&models.Group{})
+	initializers.DB.AutoMigrate(&models.ReqPosition{})
 }
