@@ -19,6 +19,7 @@ func main() {
 	r.GET("/group/:gid", controllers.GetSingleGroup)
 	r.GET("/all-groups", controllers.GetAllGroups)
 	r.POST("/new-group", controllers.GroupCreate)
+	r.POST("/group/:gid/add/:uid", controllers.JoinGroup)
 	r.PUT("/set-group/:gid", controllers.GroupUpdate)
 	r.DELETE("/rm-group/:gid", controllers.GroupDelete)
 

@@ -1,7 +1,7 @@
 package controllers
 
 import (
-
+	
 	"net/http"
 
 	"github.com/SE-TEAM-66/CPEvent-Backend/initializers"
@@ -32,7 +32,7 @@ func GroupCreate(c *gin.Context) {
 	//Find creator id
 	var owner models.User
 	if err := initializers.DB.First(&owner,body.Owner_id); err.Error != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
+		c.JSON(http.StatusNotFound, gin.H{
 			"error": "user not found",
 		})
 		return
@@ -63,6 +63,40 @@ func GroupCreate(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"message": owner,
 	})
+}
+
+func JoinGroup(c * gin.Context){
+	gid := c.Param("gid")
+	uid := c.Param("uid")
+
+	// Find group
+	var group models.Group
+	if err := initializers.DB.First(&group, gid); err.Error != nil {
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": "target group not found",
+		})
+		return		
+	}
+
+	// Find user
+	var user models.User
+	if err := initializers.DB.First(&user, uid); err.Error != nil {
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": "target user not found",
+		})
+		return		
+	}
+
+
+	// associate the group to the owner id
+	initializers.DB.Model(&group).Association("Users").Append(&user)
+
+	//Return on Success
+	c.JSON(http.StatusOK, gin.H{
+		"user": user,
+		"group": group,
+	})	
+
 }
 
 func GroupUpdate(c *gin.Context){
@@ -179,3 +213,5 @@ func GroupDelete(c *gin.Context){
 		"message": "ok",
 	})
 }
+
+
