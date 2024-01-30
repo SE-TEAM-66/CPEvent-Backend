@@ -14,7 +14,7 @@ func init(){
 func main() {
 	r := gin.Default()
 
-	r.POST("/posts", controllers.ProfileCreate)
+	r.POST("/profile", controllers.ProfileCreate)
 
 
 	r.Run() 
