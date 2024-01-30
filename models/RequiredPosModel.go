@@ -4,7 +4,7 @@ import (
 	"gorm.io/gorm"
 )
 
-type Position struct {
+type ReqPosition struct {
 	gorm.Model
 	Role    string `json:"role"`
 	GroupID uint

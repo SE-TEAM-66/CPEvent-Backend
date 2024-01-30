@@ -6,12 +6,12 @@ import (
 
 type Group struct {
 	gorm.Model
-	Gname       string
-	Owner_id    int
-	Topic       string
-	Description string
-	IsHidden    bool
-	Limit_mem   int
-	Cat_id      int
-	Positions   []Position `gorm:"foreignKey:GroupID"`
+	Gname        string
+	Owner_id     int
+	Topic        string
+	Description  string
+	IsHidden     bool
+	Limit_mem    int
+	Cat_id       int
+	ReqPositions []ReqPosition `gorm:"foreignKey:GroupID"`
 }

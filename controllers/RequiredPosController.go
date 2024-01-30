@@ -24,7 +24,7 @@ func GetPosition(c *gin.Context) {
 		return
 	}
 
-	var positions []models.Position
+	var positions []models.ReqPosition
 	initializers.DB.Model(&group).Association("Positions").Find(&positions)
 
 	// return
@@ -38,7 +38,7 @@ func AddPosition(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid GroupID!"})
 		return
 	}
-	var newPos models.Position
+	var newPos models.ReqPosition
 	if err := c.ShouldBindJSON(&newPos); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -76,7 +76,7 @@ func DeletePosition(c *gin.Context) {
 	}
 
 	// Model Call
-	var targetPos models.Position
+	var targetPos models.ReqPosition
 	if err := initializers.DB.First(&targetPos, pid).Error; err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "PositionID not found!"})
 		return
@@ -114,14 +114,14 @@ func EditPosition(c *gin.Context) {
 		return
 	}
 
-	var reqPos models.Position
+	var reqPos models.ReqPosition
 	if err := c.ShouldBindJSON(&reqPos); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
 	// Model Call
-	var editedPos models.Position
+	var editedPos models.ReqPosition
 	if err := initializers.DB.First(&editedPos, pid).Error; err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "PositionID not found!"})
 		return
@@ -133,7 +133,7 @@ func EditPosition(c *gin.Context) {
 	}
 
 	if err := initializers.DB.Model(&editedPos).Updates(
-		models.Position{
+		models.ReqPosition{
 			Role: reqPos.Role,
 		}).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -145,7 +145,7 @@ func EditPosition(c *gin.Context) {
 }
 
 func validPosition(gid uint, pid uint) error {
-	var positions []models.Position
+	var positions []models.ReqPosition
 	result := initializers.DB.Where("group_id = ?", gid).First(&positions, pid)
 	if result.Error != nil {
 		return result.Error
