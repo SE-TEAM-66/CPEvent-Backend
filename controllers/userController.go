@@ -58,7 +58,7 @@ func GetProfileWithUser(c *gin.Context) {
         return
     }
 
-    // Fetch the profile along with its associated user
+    // Fetch the profile along with its associated user 
     var profile models.Profile
     if err := initializers.DB.Preload("User").Where("id = ?", profileID).First(&profile).Error; err != nil {
         c.JSON(http.StatusNotFound, gin.H{"error": "Profile not found"})

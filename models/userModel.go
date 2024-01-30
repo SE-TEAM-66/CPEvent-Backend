@@ -11,4 +11,4 @@ type User struct {
 	Bio      string
 	Tag      string
 	Profile Profile `gorm:"foreignKey:UserID"`
-}
+} 
