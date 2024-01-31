@@ -20,8 +20,9 @@ func main() {
 	r.GET("/all-groups", controllers.GetAllGroups)
 	r.POST("/new-group", controllers.GroupCreate)
 	r.POST("/group/:gid/add/:uid", controllers.JoinGroup)
-	r.PUT("/set-group/:gid", controllers.GroupUpdate)
+	r.PUT("/set-group/:gid", controllers.GroupInfoUpdate)
 	r.DELETE("/rm-group/:gid", controllers.GroupDelete)
+	r.DELETE("/group/:gid/rm/:uid", controllers.LeftGroup)
 
 	r.Run() 
 }

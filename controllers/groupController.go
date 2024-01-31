@@ -119,7 +119,60 @@ func JoinGroup(c * gin.Context){
 
 }
 
-func GroupUpdate(c *gin.Context){
+func LeftGroup(c *gin.Context){
+	// Get ids from params
+	gid := c.Param("gid")
+	uid := c.Param("uid")
+
+	// Find group
+	var group models.Group
+	if err := initializers.DB.First(&group, gid); err.Error != nil {
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": "target group not found",
+		})
+		return		
+	}
+
+	// Find user
+	var user models.User
+	if err := initializers.DB.First(&user, uid); err.Error != nil {
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": "target user not found",
+		})
+		return		
+	}
+
+	// Check if this user is in the group
+	var exist_count int64
+	initializers.DB.Table("group_member").Where("user_id = ?", user.ID).Where("group_id = ?", group.ID).Count(&exist_count)
+	if exist_count <= 0{
+		c.JSON(http.StatusForbidden, gin.H{
+			"error": "this user is not the group member",
+		})
+		return			
+	}		
+
+	// Remove user from group association
+	initializers.DB.Model(&group).Association("Users").Delete(&user)
+
+	// Check if group is empty, if yes then delete it
+	var total_count int64
+	initializers.DB.Table("group_member").Where("group_id = ?", group.ID).Count(&total_count)
+	if total_count <= 0{
+		initializers.DB.Delete(&group)
+		c.JSON(http.StatusOK, gin.H{
+			"message": "member removed, and group deleted",
+		})	
+		return	
+	}
+
+	//Return on Success
+	c.JSON(http.StatusOK, gin.H{
+		"message": "member removed",
+	})
+}
+
+func GroupInfoUpdate(c *gin.Context){
 	// Get id from param
 	id := c.Param("gid")
 
