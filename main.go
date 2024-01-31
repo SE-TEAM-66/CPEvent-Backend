@@ -17,7 +17,7 @@ func init() {
 func main() {
 	r := gin.Default()
 	r.Use(cors.Default())
-	r.GET("group/:gid/position", controllers.GetPosition)
+	r.GET("group/:gid/position", middleware.RequireAuth, controllers.GetPosition)
 	r.POST("group/:gid/position", controllers.AddPosition)
 	r.DELETE("group/:gid/position/:pid", controllers.DeletePosition)
 	r.PUT("group/:gid/position/:pid", controllers.EditPosition)
@@ -27,13 +27,11 @@ func main() {
 	r.POST("/login", controllers.Login)
 	r.GET("/validate", middleware.RequireAuth, controllers.Validate)
 	r.GET("/getusers", middleware.RequireAuth, controllers.Getusers)
-	r.GET("/POSTS/:id", controllers.GetProfileWithUser)
 	r.POST("/profile", controllers.ProfileCreate)
 	r.PUT("/profile/:id", controllers.ProfileUpdate)
 	r.GET("/profile", controllers.ProfileIndex)
 	r.GET("/profile/:id", controllers.ProfileShow)
 	r.DELETE("/profile/:id", controllers.ProfileDelete)
-	r.POST("/POSTS", controllers.User)
 	r.POST("/profiles/:profileID/exp", controllers.CreateExperience)
 	r.Run()
 }
