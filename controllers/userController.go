@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"fmt"
 	"net/http"
 	"os"
 	"time"
@@ -16,8 +15,6 @@ import (
 func Signup(c *gin.Context) {
 	//Get
 	var body struct {
-		Fname    string
-		Lname    string
 		Email    string
 		Password string
 	}
@@ -33,7 +30,7 @@ func Signup(c *gin.Context) {
 		return
 	}
 	//Create
-	user := models.User{Fname: body.Fname, Lname: body.Lname, Email: body.Email, Password: string(hash)}
+	user := models.User{Email: body.Email, Password: string(hash)}
 	result := initializers.DB.Create(&user)
 
 	if result.Error != nil {
@@ -90,7 +87,6 @@ func Validate(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"message": user,
 	})
-	fmt.Println(user.(models.User).Fname)
 }
 
 func Getusers(c *gin.Context) {
