@@ -19,13 +19,13 @@ func GetPosition(c *gin.Context) {
 
 	// Model Call
 	var group models.Group
-	if err := initializers.DB.Where("id = ?", gid).First(&group).Error; err != nil {
+	if err := initializers.DB.First(&group, gid).Error; err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "GroupID not found!"})
 		return
 	}
 
 	var positions []models.ReqPosition
-	initializers.DB.Model(&group).Association("Positions").Find(&positions)
+	initializers.DB.Model(&group).Association("ReqPositions").Find(&positions)
 
 	// return
 	c.JSON(http.StatusOK, gin.H{"data": positions})
@@ -46,12 +46,12 @@ func AddPosition(c *gin.Context) {
 
 	// Model Call
 	var group models.Group
-	if err := initializers.DB.Where("id = ?", gid).First(&group).Error; err != nil {
+	if err := initializers.DB.First(&group, gid).Error; err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "GroupID not found!"})
 		return
 	}
 
-	initializers.DB.Model(&group).Association("Positions").Append(&newPos)
+	initializers.DB.Model(&group).Association("ReqPositions").Append(&newPos)
 
 	// return
 	c.JSON(http.StatusOK, gin.H{"data": newPos})
