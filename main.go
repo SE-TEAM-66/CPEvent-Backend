@@ -4,6 +4,7 @@ import (
 	"github.com/SE-TEAM-66/CPEvent-Backend/controllers"
 	"github.com/SE-TEAM-66/CPEvent-Backend/initializers"
 	"github.com/SE-TEAM-66/CPEvent-Backend/middleware"
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
 
@@ -15,11 +16,7 @@ func init() {
 
 func main() {
 	r := gin.Default()
-	r.GET("/ping", func(c *gin.Context) {
-		c.JSON(200, gin.H{
-			"message": "pong",
-		})
-	})
+	r.Use(cors.Default())
 	r.GET("group/:gid/position", controllers.GetPosition)
 	r.POST("group/:gid/position", controllers.AddPosition)
 	r.DELETE("group/:gid/position/:pid", controllers.DeletePosition)
@@ -30,5 +27,12 @@ func main() {
 	r.POST("/login", controllers.Login)
 	r.GET("/validate", middleware.RequireAuth, controllers.Validate)
 	r.GET("/getusers", middleware.RequireAuth, controllers.Getusers)
+	r.GET("/group/:gid", controllers.GetSingleGroup)
+	r.GET("/all-groups", controllers.GetAllGroups)
+	r.POST("/new-group", controllers.GroupCreate)
+	r.POST("/group/:gid/add/:uid", controllers.JoinGroup)
+	r.PUT("/set-group/:gid", controllers.GroupInfoUpdate)
+	r.DELETE("/rm-group/:gid", controllers.GroupDelete)
+	r.DELETE("/group/:gid/rm/:uid", controllers.LeftGroup)
 	r.Run()
 }
