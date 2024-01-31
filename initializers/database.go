@@ -10,8 +10,8 @@ import (
 
 var DB *gorm.DB
 
-func ConnectDB (){	
-	var err error  
+func ConnectDB() {
+	var err error
 	dsn := os.Getenv("DB_URL")
 	DB, err = gorm.Open(mysql.Open(dsn), &gorm.Config{})
 
