@@ -87,12 +87,32 @@ func JoinGroup(c * gin.Context){
 		return		
 	}
 
+	// Check if group is full
+	var total_count int64
+	initializers.DB.Table("group_member").Where("group_id = ?", group.ID).Count(&total_count)
+	if total_count >= int64(group.Limit_mem){
+		c.JSON(http.StatusForbidden, gin.H{
+			"error": "this group is full",
+		})
+		return			
+	}
+
+	//Check if member is duplicate in group
+	var dup_count int64
+	initializers.DB.Table("group_member").Where("user_id = ?", user.ID).Where("group_id = ?", group.ID).Count(&dup_count)
+	if dup_count >= 1{
+		c.JSON(http.StatusForbidden, gin.H{
+			"error": "this member is already part of group",
+		})
+		return			
+	}	
 
 	// associate the group to the owner id
 	initializers.DB.Model(&group).Association("Users").Append(&user)
 
 	//Return on Success
 	c.JSON(http.StatusOK, gin.H{
+		"count": total_count,		
 		"user": user,
 		"group": group,
 	})	
