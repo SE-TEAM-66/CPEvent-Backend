@@ -24,6 +24,8 @@ func main() {
 
 	r.POST("/POSTS", controllers.User)
 
+	r.POST("/profiles/:profileID/exp", controllers.CreateExperience)
+
 	r.Run() 
 }
 

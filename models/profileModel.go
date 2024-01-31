@@ -14,4 +14,5 @@ type Profile struct {
 	Facebook string
 	Line string
 	UserID uint
+	Exp []Exp
 }
