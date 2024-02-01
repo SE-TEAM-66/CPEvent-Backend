@@ -291,10 +291,19 @@ func GetAllGroups(c * gin.Context){
 
 func GroupDelete(c *gin.Context){
 	// Get data from id
-	id := c.Param("gid")
+	gid := c.Param("gid")
 
-	// Delete group
-	result := initializers.DB.Delete(&models.Group{},id)
+	// Find group
+	var group models.Group
+	if err := initializers.DB.First(&group, gid); err.Error != nil {
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": "target group not found",
+		})
+		return		
+	}
+
+	// Delete group and associated members
+	result := initializers.DB.Select("Users").Delete(&group)
 
 	//Return on error
 	if result.Error != nil {
