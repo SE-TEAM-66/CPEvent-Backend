@@ -224,6 +224,29 @@ func GroupInfoUpdate(c *gin.Context){
 	})
 }
 
+func GetAllGroupMembers(c *gin.Context){
+	// Get gid from param
+	gid := c.Param("gid")
+
+	// Find group
+	var group models.Group
+	if err := initializers.DB.First(&group, gid); err.Error != nil {
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": "target group not found",
+		})
+		return		
+	}
+
+	// Retrieve all users from group
+	var users []models.User
+	initializers.DB.Model(&group).Association("Users").Find(&users)
+
+	//Return on Success
+	c.JSON(http.StatusOK, gin.H{
+		"data": users,
+	})
+}
+
 func GetSingleGroup(c *gin.Context){
 	//Get id from param
 	id := c.Param("gid")
@@ -242,7 +265,7 @@ func GetSingleGroup(c *gin.Context){
 
 	//Response 
 	c.JSON(http.StatusOK, gin.H{
-		"message": "ok",
+		"message": group,
 	})
 
 }
@@ -262,7 +285,7 @@ func GetAllGroups(c * gin.Context){
 
 	// Response
 	c.JSON(http.StatusOK, gin.H{
-		"message": "ok",
+		"data": groups,
 	})
 }
 
@@ -286,5 +309,4 @@ func GroupDelete(c *gin.Context){
 		"message": "ok",
 	})
 }
-
 
