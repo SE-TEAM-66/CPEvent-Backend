@@ -11,18 +11,18 @@ func GroupRoutes(r *gin.Engine) {
 		// GET
 	r.GET("/group/:gid/all-members", controllers.GetAllGroupMembers)
 	r.GET("/group/:gid", controllers.GetSingleGroup)	
-	r.GET("/all-groups", controllers.GetAllGroups)
+	r.GET("/group/all", controllers.GetAllGroups)
 
 		// POST
-	r.POST("/new-group", controllers.GroupCreate)
+	r.POST("/group/new", controllers.GroupCreate)
 	r.POST("/group/:gid/add/:uid", controllers.JoinGroup)
 
 		// PUT
-	r.PUT("/set-group/:gid", controllers.GroupInfoUpdate)
+	r.PUT("/group/set/:gid", controllers.GroupInfoUpdate)
 
 		// DELETE
 	r.DELETE("/group/:gid/rm/:uid", controllers.LeftGroup)	
-	r.DELETE("/rm-group/:gid", controllers.GroupDelete)
+	r.DELETE("/group/del/:gid", controllers.GroupDelete)
 
 	// Position
 		// GET
