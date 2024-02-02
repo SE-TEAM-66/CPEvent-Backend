@@ -33,15 +33,12 @@ func main() {
 	
 
 
-	r.GET("/POSTS/:id", controllers.GetProfileWithUser)
-
 	r.POST("/profile", controllers.ProfileCreate)
 	r.PUT("/profile/:id", controllers.ProfileUpdate)
 	r.GET("/profile", controllers.ProfileIndex)
 	r.GET("/profile/:id", controllers.ProfileShow)
 	r.DELETE("/profile/:id", controllers.ProfileDelete)
 
-	r.POST("/POSTS", controllers.User)
 
 	r.POST("/profiles/:profileID/exp", controllers.CreateExperience)
 
