@@ -67,8 +67,8 @@ func Login(c *gin.Context) {
 	}
 	//generate jwt token
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"sub": user.ID,
-		"exp": time.Now().Add(time.Hour * 24 * 30).Unix(),
+		"sub": user.Email,
+		"exp": time.Now().Add(time.Second * 10).Unix(),
 	})
 	//sign n get completed encoded token
 	tokenString, err := token.SignedString([]byte(os.Getenv("SECRET")))
@@ -81,7 +81,10 @@ func Login(c *gin.Context) {
 	c.SetCookie("Authorization", tokenString, 3600*24*30, "", "", false, true)
 	c.JSON(http.StatusOK, gin.H{})
 }
-
+func Logout(c *gin.Context) {
+	c.SetCookie("Authorization", "", -1, "", "", false, true)
+	c.String(http.StatusOK, "Cookie has been deleted")
+}
 func Validate(c *gin.Context) {
 	user, _ := c.Get("user")
 	c.JSON(http.StatusOK, gin.H{
@@ -92,7 +95,6 @@ func Validate(c *gin.Context) {
 func Getusers(c *gin.Context) {
 	var users []models.User
 	initializers.DB.Find(&users)
-
 	//Res
 	c.JSON(200, gin.H{
 		"users": users,
