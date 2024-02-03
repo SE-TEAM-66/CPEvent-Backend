@@ -82,7 +82,9 @@ func Login(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{})
 }
 func Logout(c *gin.Context) {
-	c.SetCookie("Authorization", "", -1, "", "", false, true)
+	c.SetCookie("Authorization", "", -1, "/", "localhost", false, true)
+	googleLogoutURL := "https://accounts.google.com/logout"
+	c.Redirect(http.StatusSeeOther, googleLogoutURL)
 	c.String(http.StatusOK, "Cookie has been deleted")
 }
 func Validate(c *gin.Context) {

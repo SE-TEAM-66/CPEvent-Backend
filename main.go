@@ -19,9 +19,8 @@ func main() {
 	r.GET("/auth/callback", controllers.Googlecallback)
 	r.POST("/signup", controllers.Signup)
 	r.POST("/login", controllers.Login)
-	r.POST("/logout", controllers.Logout)
-	r.POST("/logoutg", controllers.Logoutg)
+	r.GET("/logout", middleware.RequireAuth, controllers.Logout)
 	r.GET("/validate", middleware.RequireAuth, controllers.Validate)
-	r.GET("/getusers", middleware.RequireAuth, controllers.Getusers)
+	r.GET("/get_users", middleware.RequireAuth, controllers.Getusers)
 	r.Run()
 }

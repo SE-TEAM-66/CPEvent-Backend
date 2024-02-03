@@ -54,7 +54,7 @@ func Googlecallback(c *gin.Context) {
 	emailss := strings.Replace(email, " ", "", -1)
 	emails := strings.Replace(strings.Split(emailss, ":")[1], "\"", "", -1)
 	fmt.Println(emails)
-
+	fmt.Print("Local Cookie Created!")
 	//generate jwt token
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"sub": emails,
