@@ -1,14 +1,16 @@
 package main
 
 import (
-	"github.com/SE-TEAM-66/CPEvent-Backend/controllers"
 	"github.com/SE-TEAM-66/CPEvent-Backend/initializers"
+	"github.com/SE-TEAM-66/CPEvent-Backend/routes"
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
 
 func init() {
 	initializers.LoadEnvVar()
 	initializers.ConnectDB()
+	initializers.SyncDatabase()
 }
 
 func main() {
@@ -19,11 +21,12 @@ func main() {
 		})
 	})
 
-	r.GET("group/:gid/position", controllers.GetPosition)
-	r.POST("group/:gid/position", controllers.AddPosition)
-	r.DELETE("group/:gid/position/:pid", controllers.DeletePosition)
-	r.PUT("group/:gid/position/:pid", controllers.EditPosition)
-
 	r.POST("group/:gid/position/:pid", controllers.Apply)
+	r.Use(cors.Default())
+
+	routes.GroupRoutes(r)
+	routes.AuthRoutes(r)
+	routes.ProfileRoutes(r)
+  
 	r.Run()
 }
