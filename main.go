@@ -15,11 +15,18 @@ func init() {
 
 func main() {
 	r := gin.Default()
+	r.GET("/ping", func(c *gin.Context) {
+		c.JSON(200, gin.H{
+			"message": "pong",
+		})
+	})
+
+	r.POST("group/:gid/position/:pid", controllers.Apply)
 	r.Use(cors.Default())
 
 	routes.GroupRoutes(r)
 	routes.AuthRoutes(r)
 	routes.ProfileRoutes(r)
-
+  
 	r.Run()
 }
