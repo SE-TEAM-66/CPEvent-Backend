@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -32,30 +33,26 @@ func Apply(c *gin.Context) {
 		return
 	}
 
-	var reqBody struct {
-		UserID uint `json:"uid" binding:"required"`
-	}
-	if err := c.BindJSON(&reqBody); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": err.Error(),
-		})
+	// Model call
+	applicant, _ := c.Get("user")
+	applicant, ok := applicant.(*models.User)
+	if !ok {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user type in the context"})
 		return
 	}
 
-	// Model call
-	var applicant models.User
-	if err := initializers.DB.First(&applicant, reqBody.UserID).Error; err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "User not found!"})
-		return
-	}
+	fmt.Println(applicant)
 
 	var position models.ReqPosition
 	if err := initializers.DB.First(&position, pid).Error; err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "User not found!"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Position not found!"})
 		return
 	}
 
-	initializers.DB.Model(&position).Association("Applicants").Append(&applicant)
+	if err := initializers.DB.Model(applicant).Association("Applications").Append(&position); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
 
 	// return
 	c.Status(http.StatusOK)

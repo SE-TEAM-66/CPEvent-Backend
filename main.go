@@ -21,12 +21,11 @@ func main() {
 		})
 	})
 
-	r.POST("group/:gid/position/:pid", controllers.Apply)
 	r.Use(cors.Default())
 
 	routes.GroupRoutes(r)
 	routes.AuthRoutes(r)
 	routes.ProfileRoutes(r)
-  
+
 	r.Run()
 }
