@@ -8,33 +8,36 @@ import (
 
 func GroupRoutes(r *gin.Engine) {
 	// Group
-		// GET
+	// GET
 	r.GET("/group/:gid/all-members", controllers.GetAllGroupMembers)
-	r.GET("/group/:gid", controllers.GetSingleGroup)	
+	r.GET("/group/:gid", controllers.GetSingleGroup)
 	r.GET("/group/all", controllers.GetAllGroups)
 
-		// POST
+	// POST
 	r.POST("/group/new", controllers.GroupCreate)
 	r.POST("/group/:gid/add/:uid", controllers.JoinGroup)
 
-		// PUT
+	// PUT
 	r.PUT("/group/set/:gid", controllers.GroupInfoUpdate)
 
-		// DELETE
-	r.DELETE("/group/:gid/rm/:uid", controllers.LeftGroup)	
+	// DELETE
+	r.DELETE("/group/:gid/rm/:uid", controllers.LeftGroup)
 	r.DELETE("/group/del/:gid", controllers.GroupDelete)
 
 	// Position
-		// GET
+	// GET
 	r.GET("/group/:gid/position", middleware.RequireAuth, controllers.GetPosition)
 
-		// POST
+	// POST
 	r.POST("/group/:gid/position", controllers.AddPosition)
 
-		// PUT
+	// PUT
 	r.PUT("/group/:gid/position/:pid", controllers.EditPosition)
 
-		// DELETE
-	r.DELETE("/group/:gid/position/:pid", controllers.DeletePosition)	
+	// DELETE
+	r.DELETE("/group/:gid/position/:pid", controllers.DeletePosition)
+
+	// apply position
+	r.POST("group/:gid/position/:pid", middleware.RequireAuth, controllers.Apply)
 
 }

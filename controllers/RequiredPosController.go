@@ -24,11 +24,38 @@ func GetPosition(c *gin.Context) {
 		return
 	}
 
-	var positions []models.ReqPosition
-	initializers.DB.Model(&group).Association("ReqPositions").Find(&positions)
+	var all_positions []models.ReqPosition
+	initializers.DB.Model(&group).Association("ReqPositions").Find(&all_positions)
+
+	user, _ := c.Get("user")
+	var user_positions []models.ReqPosition
+	initializers.DB.Model(user).Association("Applications").Find(&user_positions)
+
+	type Position struct {
+		Position models.ReqPosition
+		Applied  bool
+	}
+
+	var positions []Position
+
+	for _, pos := range all_positions {
+		pass := false
+		for _, user_pos := range user_positions {
+			if pos.ID == user_pos.ID {
+				position := Position{Position: pos, Applied: true}
+				positions = append(positions, position)
+				pass = true
+				break
+			}
+		}
+		if !pass {
+			position := Position{Position: pos, Applied: false}
+			positions = append(positions, position)
+		}
+	}
 
 	// return
-	c.JSON(http.StatusOK, gin.H{"data": positions})
+	c.JSON(http.StatusOK, gin.H{"positions": positions})
 }
 
 func AddPosition(c *gin.Context) {
