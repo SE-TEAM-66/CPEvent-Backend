@@ -14,9 +14,9 @@ require (
 )
 
 require (
+	cloud.google.com/go v0.110.2 // indirect
 	cloud.google.com/go/compute v1.20.1 // indirect
 	cloud.google.com/go/compute/metadata v0.2.3 // indirect
-	cloud.google.com/go v0.67.0 // indirect
 	github.com/aws/aws-sdk-go v1.50.6 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
@@ -41,7 +41,6 @@ require (
 	github.com/stretchr/signature v0.0.0-20160104132143-168b2a1e1b56 // indirect
 	github.com/stretchr/stew v0.0.0-20130812190256-80ef0842b48b // indirect
 	github.com/stretchr/tracer v0.0.0-20140124184152-66d3696bba97 // indirect
-	golang.org/x/oauth2 v0.16.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 )
 
