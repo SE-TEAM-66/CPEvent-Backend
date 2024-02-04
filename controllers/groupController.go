@@ -1,8 +1,8 @@
 package controllers
 
 import (
-	
 	"net/http"
+	"strconv"
 
 	"github.com/SE-TEAM-66/CPEvent-Backend/initializers"
 	"github.com/SE-TEAM-66/CPEvent-Backend/models"
@@ -30,10 +30,10 @@ func GroupCreate(c *gin.Context) {
 	}
 
 	//Find creator id
-	var owner models.User
+	var owner models.Profile
 	if err := initializers.DB.First(&owner,body.Owner_id); err.Error != nil {
 		c.JSON(http.StatusNotFound, gin.H{
-			"error": "user not found",
+			"error": "profile not found",
 		})
 		return
 	}
@@ -57,7 +57,7 @@ func GroupCreate(c *gin.Context) {
 	}
 
 	// associate the created group to the owner id
-	initializers.DB.Model(&group).Association("Users").Append(&owner)
+	initializers.DB.Model(&group).Association("Profiles").Append(&owner)
 
 	//Return on Success
 	c.JSON(http.StatusOK, gin.H{
@@ -66,8 +66,19 @@ func GroupCreate(c *gin.Context) {
 }
 
 func JoinGroup(c * gin.Context){
-	gid := c.Param("gid")
-	uid := c.Param("uid")
+	// Get ids from params    
+	gidStr := c.Param("gid")
+    gid, err := strconv.Atoi(gidStr)
+    if err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{"error": "invalid group ID format"})
+        return
+    }
+    pidStr := c.Param("pid")
+    pid, err := strconv.Atoi(pidStr)
+    if err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{"error": "invalid group ID format"})
+        return
+    }
 
 	// Find group
 	var group models.Group
@@ -78,11 +89,11 @@ func JoinGroup(c * gin.Context){
 		return		
 	}
 
-	// Find user
-	var user models.User
-	if err := initializers.DB.First(&user, uid); err.Error != nil {
+	// Find user profile
+	var profile models.Profile
+	if err := initializers.DB.First(&profile, pid); err.Error != nil {
 		c.JSON(http.StatusNotFound, gin.H{
-			"error": "target user not found",
+			"error": "target profile not found",
 		})
 		return		
 	}
@@ -99,7 +110,7 @@ func JoinGroup(c * gin.Context){
 
 	//Check if member is duplicate in group
 	var dup_count int64
-	initializers.DB.Table("group_member").Where("user_id = ?", user.ID).Where("group_id = ?", group.ID).Count(&dup_count)
+	initializers.DB.Table("group_member").Where("profile_id = ?", profile.ID).Where("group_id = ?", group.ID).Count(&dup_count)
 	if dup_count >= 1{
 		c.JSON(http.StatusForbidden, gin.H{
 			"error": "this member is already part of group",
@@ -108,12 +119,12 @@ func JoinGroup(c * gin.Context){
 	}	
 
 	// associate the group to the owner id
-	initializers.DB.Model(&group).Association("Users").Append(&user)
+	initializers.DB.Model(&group).Association("Profiles").Append(&profile)
 
 	//Return on Success
 	c.JSON(http.StatusOK, gin.H{
 		"count": total_count,		
-		"user": user,
+		"profile": profile,
 		"group": group,
 	})	
 
@@ -121,8 +132,18 @@ func JoinGroup(c * gin.Context){
 
 func LeftGroup(c *gin.Context){
 	// Get ids from params
-	gid := c.Param("gid")
-	uid := c.Param("uid")
+    gidStr := c.Param("gid")
+    gid, err := strconv.Atoi(gidStr)
+    if err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{"error": "invalid group ID format"})
+        return
+    }
+    pidStr := c.Param("pid")
+    pid, err := strconv.Atoi(pidStr)
+    if err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{"error": "invalid group ID format"})
+        return
+    }
 
 	// Find group
 	var group models.Group
@@ -134,32 +155,32 @@ func LeftGroup(c *gin.Context){
 	}
 
 	// Find user
-	var user models.User
-	if err := initializers.DB.First(&user, uid); err.Error != nil {
+	var profile models.Profile
+	if err := initializers.DB.First(&profile, pid); err.Error != nil {
 		c.JSON(http.StatusNotFound, gin.H{
-			"error": "target user not found",
+			"error": "target profile not found",
 		})
 		return		
 	}
 
-	// Check if this user is in the group
+	// Check if this user profile is in the group
 	var exist_count int64
-	initializers.DB.Table("group_member").Where("user_id = ?", user.ID).Where("group_id = ?", group.ID).Count(&exist_count)
+	initializers.DB.Table("group_member").Where("profile_id = ?", profile.ID).Where("group_id = ?", group.ID).Count(&exist_count)
 	if exist_count <= 0{
 		c.JSON(http.StatusForbidden, gin.H{
-			"error": "this user is not the group member",
+			"error": "this profile is not the group member",
 		})
 		return			
 	}		
 
-	// Remove user from group association
-	initializers.DB.Model(&group).Association("Users").Delete(&user)
+	// Remove user profile from group association
+	initializers.DB.Model(&group).Association("Profiles").Delete(&profile)
 
 	// Check if group is empty, if yes then delete it
 	var total_count int64
 	initializers.DB.Table("group_member").Where("group_id = ?", group.ID).Count(&total_count)
 	if total_count <= 0{
-		initializers.DB.Delete(&group)
+		initializers.DB.Unscoped().Delete(&group)
 		c.JSON(http.StatusOK, gin.H{
 			"message": "member removed, and group deleted",
 		})	
@@ -174,7 +195,12 @@ func LeftGroup(c *gin.Context){
 
 func GroupInfoUpdate(c *gin.Context){
 	// Get id from param
-	id := c.Param("gid")
+    gidStr := c.Param("gid")
+    gid, err := strconv.Atoi(gidStr)
+    if err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{"error": "invalid group ID format"})
+        return
+    }
 
 	// Get data from req
 	var body struct{
@@ -197,7 +223,7 @@ func GroupInfoUpdate(c *gin.Context){
 
 	//Find Group from id
 	var group models.Group
-	initializers.DB.First(&group, id)
+	initializers.DB.First(&group, gid)
 
 	// Update Group
 	result := initializers.DB.Model(&group).Updates(models.Group{
@@ -226,7 +252,12 @@ func GroupInfoUpdate(c *gin.Context){
 
 func GetAllGroupMembers(c *gin.Context){
 	// Get gid from param
-	gid := c.Param("gid")
+    gidStr := c.Param("gid")
+    gid, err := strconv.Atoi(gidStr)
+    if err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{"error": "invalid group ID format"})
+        return
+    }
 
 	// Find group
 	var group models.Group
@@ -237,43 +268,47 @@ func GetAllGroupMembers(c *gin.Context){
 		return		
 	}
 
-	// Retrieve all users from group
-	var users []models.User
-	initializers.DB.Model(&group).Association("Users").Find(&users)
+	// Retrieve all user profiles from group
+	var profiles []models.Profile
+	initializers.DB.Model(&group).Association("Profiles").Find(&profiles)
 
 	//Return on Success
 	c.JSON(http.StatusOK, gin.H{
-		"data": users,
+		"message": profiles,
 	})
 }
 
 func GetSingleGroup(c *gin.Context){
-	//Get id from param
-	id := c.Param("gid")
+    // Get ID from param, handle potential errors using `ToInt()` for conversion
+    gidStr := c.Param("gid")
+    gid, err := strconv.Atoi(gidStr)
+    if err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{"error": "invalid group ID format"})
+        return
+    }
 
-	// Find Group
-	var group models.Group
-	result := initializers.DB.First(&group, id)
+    // Find Group, pre-populate fields to optimize query
+    var group models.Group
+    result := initializers.DB.Preload("ReqPositions").Preload("Profiles").First(&group, gid)
 
-	//Return on error
-	if result.Error != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "failed to get group from id",
+    // Handle errors gracefully
+    if result.Error != nil {
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": "target group not found",
 		})
-		return
-	}
+		return	
+    }
 
-	//Response 
-	c.JSON(http.StatusOK, gin.H{
+    // Success response, optionally format data or remove sensitive information
+    c.JSON(http.StatusOK, gin.H{
 		"message": group,
 	})
-
 }
 
 func GetAllGroups(c * gin.Context){
 	//Get all groups
 	var groups []models.Group
-	result := initializers.DB.Find(&groups)
+	result := initializers.DB.Preload("ReqPositions").Preload("Profiles").Find(&groups)
 
 	//Return on error
 	if result.Error != nil {
@@ -285,7 +320,7 @@ func GetAllGroups(c * gin.Context){
 
 	// Response
 	c.JSON(http.StatusOK, gin.H{
-		"data": groups,
+		"message": groups,
 	})
 }
 
@@ -302,11 +337,8 @@ func GroupDelete(c *gin.Context){
 		return		
 	}
 
-	// Delete group and associated members
-	result := initializers.DB.Select("Users").Delete(&group)
-
-	//Return on error
-	if result.Error != nil {
+	// Delete group and associated members and req_positions
+	if err := initializers.DB.Select("Profiles", "ReqPositions").Unscoped().Delete(&group); err.Error != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "failed to delete group",
 		})
