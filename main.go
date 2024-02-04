@@ -2,12 +2,15 @@ package main
 
 import (
 	"github.com/SE-TEAM-66/CPEvent-Backend/initializers"
+	"github.com/SE-TEAM-66/CPEvent-Backend/routes"
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
 
-func init(){
+func init() {
 	initializers.LoadEnvVar()
 	initializers.ConnectDB()
+	initializers.SyncDatabase()
 }
 
 func main() {
@@ -17,5 +20,12 @@ func main() {
 			"message": "pong",
 		})
 	})
-	r.Run() 
+
+	r.Use(cors.Default())
+
+	routes.GroupRoutes(r)
+	routes.AuthRoutes(r)
+	routes.ProfileRoutes(r)
+
+	r.Run()
 }
