@@ -326,7 +326,12 @@ func GetAllGroups(c * gin.Context){
 
 func GroupDelete(c *gin.Context){
 	// Get data from id
-	gid := c.Param("gid")
+    gidStr := c.Param("gid")
+    gid, err := strconv.Atoi(gidStr)
+    if err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{"error": "invalid group ID format"})
+        return
+    }
 
 	// Find group
 	var group models.Group
