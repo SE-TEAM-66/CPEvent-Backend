@@ -45,6 +45,7 @@ func main() {
 	r.POST("/profiles/:profileID/soft-skills", controllers.CreateSoftSkill)
 	r.POST("/profiles/:profileID/lang-skills", controllers.CreateLangSkill)
 	r.POST("/profiles/:profileID/dataAna", controllers.CreateDataAnaSkill)
+	r.POST("/profiles/:profileID/dataManage", controllers.CreateDBManageSkill)
 
 	r.Run() 
 }

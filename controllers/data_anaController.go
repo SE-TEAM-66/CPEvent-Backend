@@ -10,7 +10,7 @@ import (
 )
 
 func CreateDataAnaSkill(c *gin.Context) {
-				// Get profile ID from the request parameters
+		// Get profile ID from the request parameters
 		profileID, err := strconv.ParseUint(c.Param("profileID"), 10, 64)
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ProfileID"})
