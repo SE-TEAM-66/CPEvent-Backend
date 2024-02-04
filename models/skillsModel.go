@@ -2,10 +2,12 @@ package models
 
 import "gorm.io/gorm"
 
-type Exp struct {
+type Skill struct {
 	gorm.Model
 	ProfileID  uint
 	Profile Profile `gorm:"foreignKey:ProfileID"`
-	Title string
-	Description string
+	Soft_skill []Soft_skill 
+	Tec_skills []Tec_skills
+	Lang_skill []Lang_skill
+	
 }

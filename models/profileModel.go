@@ -1,7 +1,9 @@
 package models
 
-import "gorm.io/gorm"
-
+import (
+	"gorm.io/gorm"
+)
+	
 type Profile struct {
 	gorm.Model 
 	ProfilePicture string
@@ -15,4 +17,5 @@ type Profile struct {
 	Line string
 	UserID uint
 	Exp []Exp
+	Skill []Skill
 }
