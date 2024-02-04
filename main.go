@@ -43,6 +43,7 @@ func main() {
 	r.POST("/profiles/:profileID/exp", controllers.CreateExperience)
 
 	r.POST("/profiles/:profileID/soft-skills", controllers.CreateSoftSkill)
+	r.POST("/profiles/:profileID/lang-skills", controllers.CreateLangSkill)
 
 	r.Run() 
 }
