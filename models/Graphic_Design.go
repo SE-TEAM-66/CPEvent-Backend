@@ -6,5 +6,5 @@ type GraphicDesign struct {
 	gorm.Model
 	Tec_skillsID uint
 	GraphicDesign string
-	Type    string
+	
 }

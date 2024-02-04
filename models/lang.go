@@ -6,5 +6,5 @@ type Lang_skill struct {
 	gorm.Model
 	SkillID uint
 	Title string
-	Type    string
+	
 }
