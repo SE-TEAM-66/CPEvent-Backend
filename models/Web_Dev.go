@@ -6,4 +6,5 @@ type WebDev struct {
 	gorm.Model
 	Tec_skillsID uint
 	WebDev string
+	Type    string
 }

@@ -6,4 +6,5 @@ type DBmanage struct {
 	gorm.Model
 	Tec_skillsID uint
 	DBmanage string
+	Type    string
 }

@@ -42,6 +42,8 @@ func main() {
 
 	r.POST("/profiles/:profileID/exp", controllers.CreateExperience)
 
+	r.POST("/profiles/:profileID/soft-skills", controllers.CreateSoftSkill)
+
 	r.Run() 
 }
 
