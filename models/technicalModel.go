@@ -10,4 +10,5 @@ type Tec_skills struct {
 	GraphicDesign []GraphicDesign
 	Programming []Programming
 	WebDev []WebDev
+	Type string
 }
