@@ -27,7 +27,7 @@ func groupDB() {
 
 	initializers.DB.AutoMigrate(&models.Tec_skills{})
 	// initializers.DB.AutoMigrate(&models.DataAna{})
-	// initializers.DB.AutoMigrate(&models.DBmanage{})
+	initializers.DB.AutoMigrate(&models.DBmanage{})
 	// initializers.DB.AutoMigrate(&models.GraphicDesign{})
 	// initializers.DB.AutoMigrate(&models.Programming{})
 	// initializers.DB.AutoMigrate(&models.WebDev{})

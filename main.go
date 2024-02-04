@@ -47,7 +47,8 @@ func main() {
 	r.POST("/profiles/:profileID/dataAna", controllers.CreateDataAnaSkill)
 	r.POST("/profiles/:profileID/dataManage", controllers.CreateDBManageSkill)
 	r.POST("/profiles/:profileID/graphic", controllers.CreateGraphicDesignSkill)
-	r.POST("/profiles/:profileID/progming", controllers.CreateGraphicDesignSkill)
+	r.POST("/profiles/:profileID/progming", controllers.CreateProgrammingSkill)
+	r.POST("/profiles/:profileID/webdev", controllers.CreateWebDevSkill)
 	r.Run() 
 }
 
