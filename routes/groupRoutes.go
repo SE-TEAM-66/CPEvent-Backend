@@ -15,13 +15,13 @@ func GroupRoutes(r *gin.Engine) {
 
 	// POST
 	r.POST("/group/new", controllers.GroupCreate)
-	r.POST("/group/:gid/add/:uid", controllers.JoinGroup)
+	r.POST("/group/:gid/add/:pid", controllers.JoinGroup)
 
 	// PUT
 	r.PUT("/group/set/:gid", controllers.GroupInfoUpdate)
 
-	// DELETE
-	r.DELETE("/group/:gid/rm/:uid", controllers.LeftGroup)
+		// DELETE
+	r.DELETE("/group/:gid/rm/:pid", controllers.LeftGroup)	
 	r.DELETE("/group/del/:gid", controllers.GroupDelete)
 
 	// Position
