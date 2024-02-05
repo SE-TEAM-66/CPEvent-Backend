@@ -36,7 +36,7 @@ func GetPosition(c *gin.Context) {
 		Applied  bool
 	}
 
-	var positions []Position
+	positions := []Position{}
 
 	for _, pos := range all_positions {
 		pass := false

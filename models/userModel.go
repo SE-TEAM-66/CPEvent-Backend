@@ -8,5 +8,4 @@ type User struct {
 	Password     string
 	Applications []ReqPosition `gorm:"many2many:applicants;"`
 	Profile      Profile
-
 }

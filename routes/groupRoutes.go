@@ -20,8 +20,8 @@ func GroupRoutes(r *gin.Engine) {
 	// PUT
 	r.PUT("/group/set/:gid", controllers.GroupInfoUpdate)
 
-		// DELETE
-	r.DELETE("/group/:gid/rm/:pid", controllers.LeftGroup)	
+	// DELETE
+	r.DELETE("/group/:gid/rm/:pid", controllers.LeftGroup)
 	r.DELETE("/group/del/:gid", controllers.GroupDelete)
 
 	// Position
