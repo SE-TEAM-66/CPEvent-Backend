@@ -64,11 +64,11 @@ func ProfileIndex(c *gin.Context) {
 
 func ProfileShow(c *gin.Context){
 	// Get id from URL parameter
-	id := c.Param("id")
+	profileID := c.Param("profileID")
 	
 	// Get the profile from the database by ID
 	var profile models.Profile
-	if err := initializers.DB.First(&profile, id).Error; err != nil {
+	if err := initializers.DB.First(&profile, profileID).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Profile not found"})
 		return
 	}
@@ -80,7 +80,7 @@ func ProfileShow(c *gin.Context){
 
 func ProfileUpdate(c *gin.Context) {
 	// Get id
-	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
+	profileID, err := strconv.ParseUint(c.Param("profileID"), 10, 64)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid profile ID"})
 		return
@@ -105,7 +105,7 @@ func ProfileUpdate(c *gin.Context) {
 
 	// Find the profile to be updated
 	var profile models.Profile
-	if err := initializers.DB.First(&profile, id).Error; err != nil {
+	if err := initializers.DB.First(&profile, profileID).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Profile not found"})
 		return
 	}
@@ -132,11 +132,11 @@ func ProfileUpdate(c *gin.Context) {
 
 func ProfileDelete(c *gin.Context) {
 	// Get ID from URL parameter
-	id := c.Param("id")
+	profileID := c.Param("profileID")
 
 	// Check if the profile exists
 	var profile models.Profile
-	if err := initializers.DB.First(&profile, id).Error; err != nil {
+	if err := initializers.DB.First(&profile, profileID).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Profile not found"})
 		return
 	}
