@@ -128,8 +128,15 @@ func ProfileUpdate(c *gin.Context) {
 }
 
 func ProfileDelete(c *gin.Context) {
-	// Get id
+	// Get ID from URL parameter
 	id := c.Param("id")
+
+	// Check if the profile exists
+	var profile models.Profile
+	if err := initializers.DB.First(&profile, id).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Profile not found"})
+		return
+	}
 
 	// Start a transaction
 	tx := initializers.DB.Begin()
@@ -142,15 +149,16 @@ func ProfileDelete(c *gin.Context) {
 	}()
 
 	// Delete profile
-	if err := tx.Delete(&models.Profile{}, id).Error; err != nil {
+	if err := tx.Delete(&profile).Error; err != nil {
 		// Rollback the transaction on error
 		tx.Rollback()
-		c.JSON(500, gin.H{"error": "Failed to delete profile"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete profile"})
 		return
 	}
 
 	// Commit the transaction
 	tx.Commit()
 
-	c.Status(200)
+	c.Status(http.StatusOK)
 }
+
