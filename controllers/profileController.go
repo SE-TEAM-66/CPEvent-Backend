@@ -50,13 +50,16 @@ func ProfileCreate(c *gin.Context) {
 	c.JSON(200, gin.H{"profile":profile,})
 }
 
-func ProfileIndex(c *gin.Context){
-	//get the profile
-	var profiles []models.Profile
-	initializers.DB.Find(&profiles)
+func ProfileIndex(c *gin.Context) {
+    var profiles []models.Profile
 
+    // Find all profiles including their associated experiences
+    if err := initializers.DB.Preload("Exp").Find(&profiles).Error; err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve profiles"})
+        return
+    }
 
-	c.JSON(200, gin.H{"profiles":profiles,})
+    c.JSON(http.StatusOK, gin.H{"profiles": profiles})
 }
 
 func ProfileShow(c *gin.Context){
