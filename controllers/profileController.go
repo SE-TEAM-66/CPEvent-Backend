@@ -62,20 +62,24 @@ func ProfileIndex(c *gin.Context) {
     c.JSON(http.StatusOK, gin.H{"profiles": profiles})
 }
 
-func ProfileShow(c *gin.Context){
-	// Get id from URL parameter
-	profileID := c.Param("profileID")
-	
-	// Get the profile from the database by ID
-	var profile models.Profile
-	if err := initializers.DB.First(&profile, profileID).Error; err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Profile not found"})
-		return
-	}
+func ProfileShow(c *gin.Context) {
+    // Get profile ID from the request parameters
+    profileID, err := strconv.ParseUint(c.Param("profileID"), 10, 64)
+    if err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ProfileID"})
+        return
+    }
 
-	// Return the profile in the response
-	c.JSON(http.StatusOK, gin.H{"profile": profile})
+    // Find the profile by ID including its associated experiences
+    var profile models.Profile
+    if err := initializers.DB.Preload("Exp").First(&profile, profileID).Error; err != nil {
+        c.JSON(http.StatusNotFound, gin.H{"error": "Profile not found"})
+        return
+    }
+
+    c.JSON(http.StatusOK, gin.H{"profile": profile})
 }
+
 
 
 func ProfileUpdate(c *gin.Context) {
