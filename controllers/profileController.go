@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"net/http"
+	"strconv"
 
 	"github.com/SE-TEAM-66/CPEvent-Backend/initializers"
 	"github.com/SE-TEAM-66/CPEvent-Backend/models"
@@ -59,56 +60,71 @@ func ProfileIndex(c *gin.Context){
 }
 
 func ProfileShow(c *gin.Context){
-	//get id
-	id := c.Param(":id")
+	// Get id from URL parameter
+	id := c.Param("id")
 	
-	//get the profile
-	var profile []models.Profile
-	initializers.DB.First(&profile,id)
-
-
-	c.JSON(200, gin.H{"profile":profile,})
-}
-
-func ProfileUpdate(c *gin.Context){
-	//get id 
-	id := c.Param(":id")
-
-	//get data off req body
-	var body struct {
-		ProfilePicture string
-		Fname string
-		Lname string
-		Faculty string
-		Bio string
-		Phone string
-		Email string
-		Facebook string
-		Line string
-	}
-	if c.Bind(&body) != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "failed to read body"})
+	// Get the profile from the database by ID
+	var profile models.Profile
+	if err := initializers.DB.First(&profile, id).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Profile not found"})
 		return
 	}
 
-	//find post which want to be updated
-	var profile []models.Profile
-	initializers.DB.First(&profile,id)
+	// Return the profile in the response
+	c.JSON(http.StatusOK, gin.H{"profile": profile})
+}
 
-	//update
-	initializers.DB.Model(&profile).Updates(models.Profile{
-		ProfilePicture:body.ProfilePicture,
-		Fname:body.Fname,
-		Lname:body.Lname,
-		Faculty: body.Faculty,
-		Bio:body.Bio,
-		Phone:body.Phone,
-		Email:body.Email,
-		Facebook:body.Facebook,
-		Line:body.Line,
-	})
-	
-	c.JSON(200, gin.H{"profile":profile,})
+
+func ProfileUpdate(c *gin.Context) {
+	// Get id
+	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid profile ID"})
+		return
+	}
+
+	// Get data from request body
+	var body struct {
+		ProfilePicture string
+		Fname          string
+		Lname          string
+		Faculty        string
+		Bio            string
+		Phone          string
+		Email          string
+		Facebook       string
+		Line           string
+	}
+	if err := c.Bind(&body); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to read body"})
+		return
+	}
+
+	// Find the profile to be updated
+	var profile models.Profile
+	if err := initializers.DB.First(&profile, id).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Profile not found"})
+		return
+	}
+
+	// Update the profile
+	updatedProfile := models.Profile{
+		ProfilePicture: body.ProfilePicture,
+		Fname:          body.Fname,
+		Lname:          body.Lname,
+		Faculty:        body.Faculty,
+		Bio:            body.Bio,
+		Phone:          body.Phone,
+		Email:          body.Email,
+		Facebook:       body.Facebook,
+		Line:           body.Line,
+	}
+	if err := initializers.DB.Model(&profile).Updates(updatedProfile).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update profile"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"profile": updatedProfile})
 }
 
 func ProfileDelete(c *gin.Context) {
