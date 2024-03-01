@@ -4,7 +4,6 @@ import "gorm.io/gorm"
 
 type Event struct {
 	gorm.Model
-	// PMaw_ID uint `gorm:"primary_key"`
 	PicUrl string
 	Etitle string
 	Edesc  string
