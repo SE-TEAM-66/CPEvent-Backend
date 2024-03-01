@@ -37,7 +37,7 @@ func CreateProgrammingSkill(c *gin.Context) {
 	// Create a new skill and associate it with the profile
 	skill := models.Skill{
 		ProfileID: uint(profileID),
-		Type:      "TechnicalSkill",
+		Type:      "Programming",
 	}
 
 	// Save the skill to the database
@@ -47,22 +47,9 @@ func CreateProgrammingSkill(c *gin.Context) {
 		return
 	}
 
-	// Create a new technical skills entry and associate it with the skill
-	tecSkills := models.Tec_skills{
-		SkillID: uint(skill.ID),
-		Type:    "Programming",
-	}
-
-	// Save the technical skills entry to the database
-	resultTecSkills := initializers.DB.Create(&tecSkills)
-	if resultTecSkills.Error != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to create technical skills"})
-		return
-	}
-
 	// Create associated entry for Programming
 	programming := models.Programming{
-		Tec_skillsID: uint(tecSkills.ID),
+		SkillID: uint(skill.ID),
 		Programtype: tecSkillsBody.Programtype,
 	}
 
@@ -73,5 +60,5 @@ func CreateProgrammingSkill(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"tecSkills": tecSkills})
+	c.JSON(http.StatusOK, gin.H{"tecSkills": programming})
 }
