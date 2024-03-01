@@ -180,7 +180,7 @@ func LeftGroup(c *gin.Context){
 	var total_count int64
 	initializers.DB.Table("group_member").Where("group_id = ?", group.ID).Count(&total_count)
 	if total_count <= 0{
-		initializers.DB.Unscoped().Delete(&group)
+		initializers.DB.Select("Profiles", "ReqPositions").Unscoped().Delete(&group)
 		c.JSON(http.StatusOK, gin.H{
 			"message": "member removed, and group deleted",
 		})	
@@ -223,7 +223,12 @@ func GroupInfoUpdate(c *gin.Context){
 
 	//Find Group from id
 	var group models.Group
-	initializers.DB.First(&group, gid)
+	if err := initializers.DB.First(&group, gid); err.Error != nil {
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": "target group not found",
+		})
+		return		
+	}
 
 	// Update Group
 	result := initializers.DB.Model(&group).Updates(models.Group{
