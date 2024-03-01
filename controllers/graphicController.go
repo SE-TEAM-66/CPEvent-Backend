@@ -62,3 +62,53 @@ func CreateGraphicDesignSkill(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"tecSkills": graphicDesign})
 }
+
+func EditGraphicDesignSkill(c *gin.Context) {
+    // Get profile ID, skill ID, and GraphicDesignSkill ID from the request parameters
+    profileID, err := strconv.ParseUint(c.Param("profileID"), 10, 64)
+    if err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ProfileID"})
+        return
+    }
+
+    // Find the profile by ID
+    var profile models.Profile
+    if err := initializers.DB.First(&profile, profileID).Error; err != nil {
+        c.JSON(http.StatusNotFound, gin.H{"error": "Profile not found"})
+        return
+    }
+
+    skillID, err := strconv.ParseUint(c.Param("skillID"), 10, 64)
+    if err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid SkillID"})
+        return
+    }
+
+    // Check if the GraphicDesignSkill exists and belongs to the correct profile's skill
+    var graphicDesignSkill models.GraphicDesign
+    if err := initializers.DB.Where("id = ? AND skill_id IN (SELECT id FROM skills WHERE profile_id = ?)", skillID, profileID).First(&graphicDesignSkill).Error; err != nil {
+        c.JSON(http.StatusNotFound, gin.H{"error": "GraphicDesign skill not found or does not belong to the profile"})
+        return
+    }
+
+    // Get GraphicDesign skill details from the request body
+    var graphicDesignSkillBody struct {
+        GraphicDesign string `json:"graphicDesign" binding:"required"`
+    }
+
+    if c.BindJSON(&graphicDesignSkillBody) != nil {
+        c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to read body"})
+        return
+    }
+
+    // Update the GraphicDesign skill details
+    graphicDesignSkill.GraphicDesign = graphicDesignSkillBody.GraphicDesign
+
+    // Save the updated GraphicDesign skill to the database
+    if err := initializers.DB.Save(&graphicDesignSkill).Error; err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to update GraphicDesign skill"})
+        return
+    }
+
+    c.JSON(http.StatusOK, gin.H{"graphicDesignSkill": graphicDesignSkill})
+}
