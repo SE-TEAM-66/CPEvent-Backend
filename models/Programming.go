@@ -4,7 +4,7 @@ import "gorm.io/gorm"
 
 type Programming struct {
 	gorm.Model
-	Tec_skillsID uint
+	SkillID uint
 	Programtype string
 	
 }

@@ -7,7 +7,11 @@ type Skill struct {
 	ProfileID  uint
 	Profile Profile `gorm:"foreignKey:ProfileID"`
 	Soft_skill []Soft_skill 
-	Tec_skills []Tec_skills
 	Lang_skill []Lang_skill
+	DataAna []DataAna
+	DBmanage []DBmanage
+	GraphicDesign []GraphicDesign
+	Programming []Programming
+	WebDev []WebDev
 	Type string
 }

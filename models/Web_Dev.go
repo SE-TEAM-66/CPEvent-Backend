@@ -4,7 +4,7 @@ import "gorm.io/gorm"
 
 type WebDev struct {
 	gorm.Model
-	Tec_skillsID uint
+	SkillID uint
 	WebDev string
 	
 }

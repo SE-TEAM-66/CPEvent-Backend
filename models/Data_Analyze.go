@@ -4,7 +4,7 @@ import "gorm.io/gorm"
 
 type DataAna struct {
 	gorm.Model
-	Tec_skillsID uint
+	SkillID uint
 	DataAna string
 	
 }

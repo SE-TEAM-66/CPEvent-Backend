@@ -4,7 +4,7 @@ import "gorm.io/gorm"
 
 type GraphicDesign struct {
 	gorm.Model
-	Tec_skillsID uint
+	SkillID uint
 	GraphicDesign string
 	
 }

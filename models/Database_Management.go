@@ -4,7 +4,7 @@ import "gorm.io/gorm"
 
 type DBmanage struct {
 	gorm.Model
-	Tec_skillsID uint
+	SkillID uint
 	DBmanage string
 	
 }
