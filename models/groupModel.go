@@ -14,5 +14,6 @@ type Group struct {
 	Limit_mem    int
 	Cat_id       int
 	ReqPositions []ReqPosition `gorm:"foreignKey:GroupID"`
-	Profiles        []*Profile       `gorm:"many2many:group_member;"`
+	Profiles     []*Profile `gorm:"many2many:group_member;"`
+	EventID		 uint
 }
