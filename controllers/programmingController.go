@@ -112,3 +112,40 @@ func EditProgrammingSkill(c *gin.Context) {
 
     c.JSON(http.StatusOK, gin.H{"programmingSkill": programmingSkill})
 }
+
+func DeleteProgrammingSkill(c *gin.Context) {
+    // Get profile ID and programming skill ID from the request parameters
+    profileID, err := strconv.ParseUint(c.Param("profileID"), 10, 64)
+    if err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ProfileID"})
+        return
+    }
+
+    // Find the profile by ID
+    var profile models.Profile
+    if err := initializers.DB.First(&profile, profileID).Error; err != nil {
+        c.JSON(http.StatusNotFound, gin.H{"error": "Profile not found"})
+        return
+    }
+
+    skillID, err := strconv.ParseUint(c.Param("skillID"), 10, 64)
+    if err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid SkillID"})
+        return
+    }
+
+    // Check if the programming skill exists and belongs to the correct profile's skill
+    var programmingSkill models.Programming
+    if err := initializers.DB.Where("id = ? AND skill_id IN (SELECT id FROM skills WHERE profile_id = ?)", skillID, profileID).First(&programmingSkill).Error; err != nil {
+        c.JSON(http.StatusNotFound, gin.H{"error": "Programming skill not found or does not belong to the profile"})
+        return
+    }
+
+    // Delete the programming skill from the database
+    if err := initializers.DB.Delete(&programmingSkill).Error; err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete programming skill"})
+        return
+    }
+
+    c.JSON(http.StatusOK, gin.H{"message": "Programming skill deleted successfully"})
+}
