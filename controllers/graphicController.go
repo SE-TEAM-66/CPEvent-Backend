@@ -112,6 +112,7 @@ func EditGraphicDesignSkill(c *gin.Context) {
 
     c.JSON(http.StatusOK, gin.H{"graphicDesignSkill": graphicDesignSkill})
 }
+
 func DeleteGraphicDesignSkill(c *gin.Context) {
     // Get profile ID and graphic design skill ID from the request parameters
     profileID, err := strconv.ParseUint(c.Param("profileID"), 10, 64)
@@ -147,4 +148,29 @@ func DeleteGraphicDesignSkill(c *gin.Context) {
     }
 
     c.JSON(http.StatusOK, gin.H{"message": "Graphic design skill deleted successfully"})
+}
+
+func GetAllGraphicDesignSkills(c *gin.Context) {
+	// Get profile ID from the request parameters
+	profileID, err := strconv.ParseUint(c.Param("profileID"), 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ProfileID"})
+		return
+	}
+
+	// Find the profile by ID
+	var profile models.Profile
+	if err := initializers.DB.First(&profile, profileID).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Profile not found"})
+		return
+	}
+
+	// Query graphic design skills associated with the profile
+	var graphicDesignSkills []models.GraphicDesign
+	if err := initializers.DB.Where("skill_id IN (SELECT id FROM skills WHERE profile_id = ?)", profileID).Find(&graphicDesignSkills).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve graphic design skills"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"graphicDesignSkills": graphicDesignSkills})
 }

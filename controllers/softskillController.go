@@ -162,3 +162,28 @@ func DeleteSoftSkill(c *gin.Context) {
 
     c.JSON(http.StatusOK, gin.H{"message": "Soft skill deleted successfully"})
 }
+
+func GetAllSoftSkills(c *gin.Context) {
+    // Get profile ID from the request parameters
+    profileID, err := strconv.ParseUint(c.Param("profileID"), 10, 64)
+    if err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ProfileID"})
+        return
+    }
+
+    // Find the profile by ID
+    var profile models.Profile
+    if err := initializers.DB.First(&profile, profileID).Error; err != nil {
+        c.JSON(http.StatusNotFound, gin.H{"error": "Profile not found"})
+        return
+    }
+
+    // Query soft skills associated with the profile
+    var softSkills []models.Soft_skill
+    if err := initializers.DB.Where("skill_id IN (SELECT id FROM skills WHERE profile_id = ?)", profileID).Find(&softSkills).Error; err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve soft skills"})
+        return
+    }
+
+    c.JSON(http.StatusOK, gin.H{"softSkills": softSkills})
+}
