@@ -24,6 +24,10 @@ func Signup(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "failed to read body"})
 		return
 	}
+	if  body.Email == "" || body.Password == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "one or more fields are empty"})
+		return
+	}
 	//Hash
 	hash, err := bcrypt.GenerateFromPassword([]byte(body.Password), 10)
 	if err != nil {
