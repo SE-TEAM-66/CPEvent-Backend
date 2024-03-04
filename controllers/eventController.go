@@ -52,7 +52,7 @@ func EventCreate(c *gin.Context) {
 func GetAllEvents(c * gin.Context){
 	//Get all events
 	var events []models.Event
-	result := initializers.DB.Preload("Groups").Find(&events)
+	result := initializers.DB.Preload("Groups").Preload("Groups.ReqPositions").Find(&events)
 
 	//Return on error
 	if result.Error != nil {
