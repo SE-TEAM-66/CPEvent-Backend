@@ -355,7 +355,7 @@ func GroupDelete(c *gin.Context){
 		return
 	}
 
-	// Response
+	// Response w
 	c.JSON(http.StatusOK, gin.H{
 		"message": "ok",
 	})

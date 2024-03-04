@@ -24,6 +24,7 @@ func main() {
 	routes.GroupRoutes(r)
 	routes.AuthRoutes(r)
 	routes.ProfileRoutes(r)
+	routes.EventRoutes(r)
 
 	r.Run()
 }
