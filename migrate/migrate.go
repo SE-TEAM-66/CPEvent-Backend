@@ -20,4 +20,6 @@ func groupDB() {
 	initializers.DB.AutoMigrate(&models.User{})
 	initializers.DB.AutoMigrate(&models.Profile{})
 	initializers.DB.AutoMigrate(&models.Exp{})
+	initializers.DB.AutoMigrate(&models.GroupSkill{})
+	initializers.DB.AutoMigrate(&models.Member{})
 }
