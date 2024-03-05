@@ -1,6 +1,6 @@
 module github.com/SE-TEAM-66/CPEvent-Backend
 
-go 1.21.5
+go 1.21.0
 
 require (
 	github.com/gin-contrib/cors v1.5.0
