@@ -14,7 +14,7 @@ func GroupRoutes(r *gin.Engine) {
 	r.GET("/group/all", controllers.GetAllGroups)
 
 	// POST
-	r.POST("/group/new", controllers.GroupCreate)
+	r.POST("/group/new", middleware.RequireAuth, controllers.GroupCreate)
 	r.POST("/group/:gid/add/:pid", controllers.JoinGroup)
 
 	// PUT
