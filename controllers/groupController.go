@@ -323,19 +323,38 @@ func GetSingleGroup(c *gin.Context) {
 
 	// Find Group, pre-populate fields to optimize query
 	var group models.Group
-	result := initializers.DB.Preload("ReqPositions").Preload("Members").Preload("Members.Profile").Preload("Members.Skills").First(&group, gid)
+	result := initializers.DB.Preload("ReqPositions").Preload("ReqPositions.Applicants").Preload("Members").Preload("Members.Profile").Preload("Members.Skills").Preload("ReqPositions.Skills").First(&group, gid)
 
 	// Handle errors gracefully
 	if result.Error != nil {
 		c.JSON(http.StatusNotFound, gin.H{
 			"error": "target group not found",
+			"text":  result.Error,
 		})
 		return
 	}
 
+	// Check if the user making the request is the owner of the group
+	user, exists := c.Get("user")
+	if !exists {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "User not found in the context"})
+		return
+	}
+
+	// Type assertion
+	userModel, ok := user.(models.User)
+	if !ok {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user type in the context"})
+		return
+	}
+
+	isYourGroup := userModel.Profile.ID == group.Owner_id
+
 	// Success response, optionally format data or remove sensitive information
 	c.JSON(http.StatusOK, gin.H{
 		"message": group,
+		"isYour":  isYourGroup,
+		"ufjk":    userModel,
 	})
 }
 
@@ -387,5 +406,38 @@ func GroupDelete(c *gin.Context) {
 	// Response w
 	c.JSON(http.StatusOK, gin.H{
 		"message": "ok",
+	})
+}
+
+func GetUserGroups(c *gin.Context) {
+	// Get user ID from the context
+	user, exists := c.Get("user")
+	if !exists {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "User not found in the context"})
+		return
+	}
+
+	// Type assertion
+	userModel, ok := user.(models.User)
+	if !ok {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user type in the context"})
+		return
+	}
+
+	// Find user's profile
+	var userProfile models.Profile
+	result := initializers.DB.Where("user_id = ?", userModel.ID).First(&userProfile)
+	if result.Error != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": result.Error.Error()})
+		return
+	}
+
+	// Retrieve all groups that the user is a member of
+	var userGroups []models.Group
+	initializers.DB.Find(&userGroups, "id IN (SELECT group_id FROM members WHERE profile_id = ?)", userProfile.ID)
+
+	// Return on success
+	c.JSON(http.StatusOK, gin.H{
+		"message": userGroups,
 	})
 }

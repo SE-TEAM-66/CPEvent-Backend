@@ -10,7 +10,7 @@ func GroupRoutes(r *gin.Engine) {
 	// Group
 	// GET
 	r.GET("/group/:gid/all-members", controllers.GetAllGroupMembers)
-	r.GET("/group/:gid", controllers.GetSingleGroup)
+	r.GET("/group/:gid", middleware.RequireAuth, controllers.GetSingleGroup)
 	r.GET("/group/all", controllers.GetAllGroups)
 
 	// POST
@@ -40,4 +40,5 @@ func GroupRoutes(r *gin.Engine) {
 	// apply position
 	r.POST("group/:gid/position/:pid", middleware.RequireAuth, controllers.Apply)
 
+	r.GET("/user/groups", middleware.RequireAuth, controllers.GetUserGroups)
 }
