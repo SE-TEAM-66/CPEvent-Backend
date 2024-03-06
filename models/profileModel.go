@@ -15,5 +15,4 @@ type Profile struct {
 	Line           string
 	UserID         uint
 	Exp            []Exp
-	Groups         []*Group `gorm:"many2many:group_member;"`
 }
