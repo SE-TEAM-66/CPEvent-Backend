@@ -79,7 +79,7 @@ func GetSingleEvent(c *gin.Context){
 
     // Find Event, pre-populate fields to optimize query
     var event models.Event
-    result := initializers.DB.Preload("Groups").First(&event, eid)
+    result := initializers.DB.Preload("Groups").Preload("Groups.ReqPositions").Preload("Groups.Members.Profile").First(&event, eid)
 
     // Handle errors gracefully
     if result.Error != nil {
