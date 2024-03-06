@@ -15,4 +15,5 @@ type Profile struct {
 	Line           string
 	UserID         uint
 	Exp            []Exp
+	Applications   []ReqPosition `gorm:"many2many:applicants;"`
 }

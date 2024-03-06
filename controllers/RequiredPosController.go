@@ -1,12 +1,14 @@
 package controllers
 
 import (
+	"errors"
 	"net/http"
 	"strconv"
 
 	"github.com/SE-TEAM-66/CPEvent-Backend/initializers"
 	"github.com/SE-TEAM-66/CPEvent-Backend/models"
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 func GetPosition(c *gin.Context) {
@@ -25,7 +27,7 @@ func GetPosition(c *gin.Context) {
 	}
 
 	var all_positions []models.ReqPosition
-	initializers.DB.Model(&group).Association("ReqPositions").Find(&all_positions)
+	initializers.DB.Preload("Skills").Find(&all_positions, "req_positions.group_id = ?", gid)
 
 	user, _ := c.Get("user")
 	var user_positions []models.ReqPosition
@@ -176,6 +178,81 @@ func validPosition(gid uint, pid uint) error {
 	result := initializers.DB.Where("group_id = ?", gid).First(&positions, pid)
 	if result.Error != nil {
 		return result.Error
+	}
+	return nil
+}
+
+func AddPositionWithSkill(c *gin.Context) {
+	// Get request
+	gid, err := strconv.ParseUint(c.Param("gid"), 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid GroupID!"})
+		return
+	}
+
+	var newPos models.ReqPosition
+	if err := c.ShouldBindJSON(&newPos); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Check if skills are provided
+	if len(newPos.Skills) > 0 {
+		// Validate and associate skills with the new position
+		for i, skill := range newPos.Skills {
+			if err := validateSkill(&skill); err != nil {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "skill": newPos})
+				return
+			}
+
+			// Check if the skill already exists
+			var existingSkill models.GroupSkill
+			result := initializers.DB.Where("name = ?", skill.Name).First(&existingSkill)
+			if result.Error != nil {
+				if result.Error != gorm.ErrRecordNotFound {
+					// Other database error
+					c.JSON(http.StatusInternalServerError, gin.H{"error": result.Error.Error()})
+					return
+				}
+			}
+
+			// If the skill exists, use the existing one; otherwise, create a new skill
+			if result.Error == nil {
+				newPos.Skills[i] = existingSkill
+			} else {
+				// Skill doesn't exist, create a new one
+				if err := initializers.DB.Create(&skill).Error; err != nil {
+					c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+					return
+				}
+				newPos.Skills[i] = skill
+			}
+		}
+	}
+
+	// Model Call
+	var group models.Group
+	if err := initializers.DB.First(&group, gid).Error; err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "GroupID not found!"})
+		return
+	}
+
+	// Create new position
+	newPos.GroupID = group.ID
+	if err := initializers.DB.Create(&newPos).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Return
+	c.JSON(http.StatusOK, gin.H{"data": newPos})
+}
+
+func validateSkill(skill *models.GroupSkill) error {
+	// Implement your skill validation logic here
+	// For example, you can check if the skill name is not empty
+	if skill.Name == "" {
+		return errors.New("skill name cannot be empty")
 	}
 	return nil
 }
