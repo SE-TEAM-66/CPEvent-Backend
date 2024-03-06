@@ -26,6 +26,7 @@ func main() {
 	routes.ProfileRoutes(r)
 	routes.EventRoutes(r)
 	routes.MemberRoutes(r)
+	routes.NotifyRoutes(r)
 
 	r.Run()
 }

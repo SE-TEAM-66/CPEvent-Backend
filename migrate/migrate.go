@@ -22,4 +22,5 @@ func groupDB() {
 	initializers.DB.AutoMigrate(&models.Exp{})
 	initializers.DB.AutoMigrate(&models.GroupSkill{})
 	initializers.DB.AutoMigrate(&models.Member{})
+	initializers.DB.AutoMigrate(&models.Notify{})
 }
