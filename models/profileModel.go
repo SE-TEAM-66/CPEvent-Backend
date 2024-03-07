@@ -1,7 +1,9 @@
 package models
 
-import "gorm.io/gorm"
-
+import (
+	"gorm.io/gorm"
+)
+	
 type Profile struct {
 	gorm.Model 
 	ProfilePicture string
@@ -16,4 +18,5 @@ type Profile struct {
 	UserID uint
 	Exp []Exp
 	Groups   []*Group `gorm:"many2many:group_member;"`
+	Skill []Skill
 }

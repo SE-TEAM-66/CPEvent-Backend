@@ -30,8 +30,23 @@ func Signup(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "failed to hash password"})
 		return
 	}
+
 	//Create
-	user := models.User{Email: body.Email, Password: string(hash)}
+	user := models.User{
+        Email:    body.Email,
+        Password: string(hash),
+        Profile: models.Profile{
+            ProfilePicture :"",
+			Fname :"-",
+			Lname :"-",
+			Faculty :"",
+			Bio :"",
+			Phone :"",
+			Email :"",
+			Facebook :"",
+			Line :"",
+        },
+    }
 	result := initializers.DB.Create(&user)
 	if result.Error != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "failed to create user"})

@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"net/http"
+	"strconv"
 
 	"github.com/SE-TEAM-66/CPEvent-Backend/initializers"
 	"github.com/SE-TEAM-66/CPEvent-Backend/models"
@@ -10,6 +11,86 @@ import (
 
 func ProfileCreate(c *gin.Context) {
 	//Get
+	var body struct {
+		ProfilePicture string
+		Fname string
+		Lname string
+		Faculty string
+		Bio string
+		Phone string
+		Email string
+		Facebook string
+		Line string
+	}
+
+	if c.Bind(&body) != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "failed to read body"})
+		return
+	}
+
+	//Create profile
+	profile := models.Profile{
+		ProfilePicture:body.ProfilePicture,
+		Fname:body.Fname,
+		Lname:body.Lname,
+		Faculty: body.Faculty,
+		Bio:body.Bio,
+		Phone:body.Phone,
+		Email:body.Email,
+		Facebook:body.Facebook,
+		Line:body.Line} 
+
+	result := initializers.DB.Create(&profile)
+
+	if result.Error != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "failed to create user"})
+		return
+	}
+
+	c.JSON(200, gin.H{"profile":profile,})
+}
+
+func ProfileIndex(c *gin.Context) {
+    var profiles []models.Profile
+
+    // Find all profiles including their associated experiences
+    if err := initializers.DB.Preload("Exp").Find(&profiles).Error; err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve profiles"})
+        return
+    }
+
+    c.JSON(http.StatusOK, gin.H{"profiles": profiles})
+}
+
+func ProfileShow(c *gin.Context) {
+    // Get profile ID from the request parameters
+    profileID, err := strconv.ParseUint(c.Param("profileID"), 10, 64)
+    if err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ProfileID"})
+        return
+    }
+
+    // Find the profile by ID including its associated experiences
+    var profile models.Profile
+    if err := initializers.DB.Preload("Exp").First(&profile, profileID).Error; err != nil {
+        c.JSON(http.StatusNotFound, gin.H{"error": "Profile not found"})
+        return
+    }
+
+    c.JSON(http.StatusOK, gin.H{"profile": profile})
+}
+
+
+
+func ProfileUpdate(c *gin.Context) {
+	// Get id
+	profileID, err := strconv.ParseUint(c.Param("profileID"), 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid profile ID"})
+		return
+	}
+
+	// Get data from request body
 	var body struct {
 		ProfilePicture string
 		Fname          string
@@ -21,14 +102,20 @@ func ProfileCreate(c *gin.Context) {
 		Facebook       string
 		Line           string
 	}
-
-	if c.Bind(&body) != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "failed to read body"})
+	if err := c.Bind(&body); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to read body"})
 		return
 	}
 
-	//Create profile
-	profile := models.Profile{
+	// Find the profile to be updated
+	var profile models.Profile
+	if err := initializers.DB.First(&profile, profileID).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Profile not found"})
+		return
+	}
+
+	// Update the profile
+	updatedProfile := models.Profile{
 		ProfilePicture: body.ProfilePicture,
 		Fname:          body.Fname,
 		Lname:          body.Lname,
@@ -37,39 +124,54 @@ func ProfileCreate(c *gin.Context) {
 		Phone:          body.Phone,
 		Email:          body.Email,
 		Facebook:       body.Facebook,
-		Line:           body.Line}
-
-	result := initializers.DB.Create(&profile)
-
-	if result.Error != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "failed to create user"})
+		Line:           body.Line,
+	}
+	if err := initializers.DB.Model(&profile).Updates(updatedProfile).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update profile"})
 		return
 	}
 
-	c.JSON(200, gin.H{"profile": profile})
+	c.JSON(http.StatusOK, gin.H{"profile": updatedProfile})
 }
 
-func ProfileIndex(c *gin.Context) {
-	//get the profile
-	var profiles []models.Profile
-	initializers.DB.Find(&profiles)
+func ProfileDelete(c *gin.Context) {
+	// Get ID from URL parameter
+	profileID := c.Param("profileID")
 
-	c.JSON(200, gin.H{"profiles": profiles})
+	// Check if the profile exists
+	var profile models.Profile
+	if err := initializers.DB.First(&profile, profileID).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Profile not found"})
+		return
+	}
+
+	// Start a transaction
+	tx := initializers.DB.Begin()
+
+	// Defer the rollback in case of an error
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+
+	// Delete profile
+	if err := tx.Delete(&profile).Error; err != nil {
+		// Rollback the transaction on error
+		tx.Rollback()
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete profile"})
+		return
+	}
+
+	// Commit the transaction
+	tx.Commit()
+
+	c.Status(http.StatusOK)
 }
 
-func ProfileShow(c *gin.Context) {
-	//get id
-	id := c.Param(":id")
 
-	//get the profile
-	var profile []models.Profile
-	initializers.DB.First(&profile, id)
-
-	c.JSON(200, gin.H{"profile": profile})
-}
-
-func ProfileUpdate(c *gin.Context) {
-	//get id
+func ProfileUpdate(c *gin.Context){
+	//get id 
 	id := c.Param(":id")
 
 	//get data off req body
@@ -84,34 +186,41 @@ func ProfileUpdate(c *gin.Context) {
 		Facebook       string
 		Line           string
 	}
-	if c.Bind(&body) != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "failed to read body"})
+	if err := c.Bind(&body); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to read body"})
 		return
 	}
 
 	//find post which want to be updated
 	var profile []models.Profile
-	initializers.DB.First(&profile, id)
+	initializers.DB.First(&profile,id)
 
 	//update
 	initializers.DB.Model(&profile).Updates(models.Profile{
-		ProfilePicture: body.ProfilePicture,
-		Fname:          body.Fname,
-		Lname:          body.Lname,
-		Faculty:        body.Faculty,
-		Bio:            body.Bio,
-		Phone:          body.Phone,
-		Email:          body.Email,
-		Facebook:       body.Facebook,
-		Line:           body.Line,
+		ProfilePicture:body.ProfilePicture,
+		Fname:body.Fname,
+		Lname:body.Lname,
+		Faculty: body.Faculty,
+		Bio:body.Bio,
+		Phone:body.Phone,
+		Email:body.Email,
+		Facebook:body.Facebook,
+		Line:body.Line,
 	})
-
-	c.JSON(200, gin.H{"profile": profile})
+	
+	c.JSON(200, gin.H{"profile":profile,})
 }
 
 func ProfileDelete(c *gin.Context) {
-	// Get id
-	id := c.Param("id")
+	// Get ID from URL parameter
+	profileID := c.Param("profileID")
+
+	// Check if the profile exists
+	var profile models.Profile
+	if err := initializers.DB.First(&profile, profileID).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Profile not found"})
+		return
+	}
 
 	// Start a transaction
 	tx := initializers.DB.Begin()
@@ -124,17 +233,17 @@ func ProfileDelete(c *gin.Context) {
 	}()
 
 	// Delete profile
-	if err := tx.Delete(&models.Profile{}, id).Error; err != nil {
+	if err := tx.Delete(&profile).Error; err != nil {
 		// Rollback the transaction on error
 		tx.Rollback()
-		c.JSON(500, gin.H{"error": "Failed to delete profile"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete profile"})
 		return
 	}
 
 	// Commit the transaction
 	tx.Commit()
 
-	c.Status(200)
+	c.Status(http.StatusOK)
 }
 
 func ProfileImage(c *gin.Context) {
