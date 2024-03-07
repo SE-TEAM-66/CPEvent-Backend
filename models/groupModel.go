@@ -7,12 +7,13 @@ import (
 type Group struct {
 	gorm.Model
 	Gname        string
-	Owner_id     int
+	Owner_id     uint
 	Topic        string
 	Description  string
 	IsHidden     bool
 	Limit_mem    int
 	Cat_id       int
 	ReqPositions []ReqPosition `gorm:"foreignKey:GroupID"`
-	Profiles        []*Profile       `gorm:"many2many:group_member;"`
+	Members      []Member      `gorm:"foreignKey:GroupID"`
+	EventID      uint
 }

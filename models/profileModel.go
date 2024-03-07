@@ -5,7 +5,7 @@ import (
 )
 	
 type Profile struct {
-	gorm.Model 
+	gorm.Model
 	ProfilePicture string
 	Fname string
 	Lname string
@@ -19,4 +19,5 @@ type Profile struct {
 	Exp []Exp
 	Groups   []*Group `gorm:"many2many:group_member;"`
 	Skill []Skill
+	Applications   []ReqPosition `gorm:"many2many:applicants;"`
 }
