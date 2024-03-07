@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"net/http"
+	"strconv"
 
 	"github.com/SE-TEAM-66/CPEvent-Backend/initializers"
 	"github.com/SE-TEAM-66/CPEvent-Backend/models"
@@ -65,5 +66,31 @@ func GetAllEvents(c * gin.Context){
 	// Response
 	c.JSON(http.StatusOK, gin.H{
 		"message": events,
+	})
+}
+func GetSingleEvent(c *gin.Context){
+    // Get eid from param
+    eidStr := c.Param("eid")
+    eid, err := strconv.Atoi(eidStr)
+    if err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{"error": "invalid event ID format"})
+        return
+    }
+
+    // Find Event, pre-populate fields to optimize query
+    var event models.Event
+    result := initializers.DB.Preload("Groups").Preload("Groups.ReqPositions").Preload("Groups.Members.Profile").First(&event, eid)
+
+    // Handle errors gracefully
+    if result.Error != nil {
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": "target event not found",
+		})
+		return	
+    }
+
+    // Success response, optionally format data or remove sensitive information
+    c.JSON(http.StatusOK, gin.H{
+		"message": event,
 	})
 }

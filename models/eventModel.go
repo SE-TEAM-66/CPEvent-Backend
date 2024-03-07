@@ -9,5 +9,6 @@ type Event struct {
 	Edesc  string
 	Edate  string
 	Etime  string
+	Eloc   string
 	Groups []Group `gorm:"foreignKey:EventID"`
 }
