@@ -12,9 +12,9 @@ import (
 func GroupCreate(c *gin.Context) {
 	//Get data from req body
 	var body struct {
-		Gname       string `json:"gname" binding:"required"`
+		Gname       string `json:"gname"`
 		Topic       string `json:"topic" binding:"required"`
-		Description string `json:"description" binding:"required"`
+		Description string `json:"description"`
 		IsHidden    bool   `json:"is_hidden"`
 		Limit_mem   int    `json:"limit_mem"`
 		Cat_id      int    `json:"cat_id" binding:"required,gt=0"`
@@ -71,6 +71,7 @@ func GroupCreate(c *gin.Context) {
 	owner := models.Member{
 		ProfileID: ownerProfile.ID,
 		GroupID:   group.ID,
+		Role:      "Owner",
 	}
 
 	// associate the created group to the owner id
@@ -354,7 +355,7 @@ func GetSingleGroup(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"message": group,
 		"isYour":  isYourGroup,
-		"ufjk":    userModel,
+		"profile": userModel,
 	})
 }
 

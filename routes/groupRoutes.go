@@ -38,7 +38,7 @@ func GroupRoutes(r *gin.Engine) {
 	r.DELETE("/group/:gid/position/:pid", controllers.DeletePosition)
 
 	// apply position
-	r.POST("group/:gid/position/:pid", middleware.RequireAuth, controllers.Apply)
+	r.POST("group/:gid/position/:pid", middleware.RequireAuth, controllers.ApplyPosition)
 
 	r.GET("/user/groups", middleware.RequireAuth, controllers.GetUserGroups)
 }

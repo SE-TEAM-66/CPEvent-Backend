@@ -256,3 +256,91 @@ func validateSkill(skill *models.GroupSkill) error {
 	}
 	return nil
 }
+
+func ApplyPosition(c *gin.Context) {
+	// Get request parameters
+	gid, err := strconv.ParseUint(c.Param("gid"), 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid GroupID!"})
+		return
+	}
+
+	pid, err := strconv.ParseUint(c.Param("pid"), 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid PositionID!"})
+		return
+	}
+
+	// Check if the user making the request is the owner of the group
+	user, exists := c.Get("user")
+	if !exists {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "User not found in the context"})
+		return
+	}
+
+	// Type assertion
+	userModel, ok := user.(models.User)
+	if !ok {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user type in the context"})
+		return
+	}
+
+	// Find user's profile
+	var userProfile models.Profile
+	result := initializers.DB.Where("user_id = ?", userModel.ID).First(&userProfile)
+	if result.Error != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": result.Error.Error()})
+		return
+	}
+
+	// Check if the group exists
+	var existingGroup models.Group
+	if err := initializers.DB.First(&existingGroup, gid).Error; err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "GroupID not found!"})
+		return
+	}
+
+	// Check if the position exists in the group
+	var existingPosition models.ReqPosition
+	if err := initializers.DB.Where("id = ? AND group_id = ?", pid, gid).First(&existingPosition).Error; err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "PositionID not found in the specified group!"})
+		return
+	}
+
+	// Check if the user is already a member of the group
+	var existingMember models.Member
+	result = initializers.DB.Where("group_id = ? AND profile_id = ?", gid, userProfile.ID).First(&existingMember)
+	if result.Error == nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "You are already a member of this group!"})
+		return
+	} else if result.Error != gorm.ErrRecordNotFound {
+		// Other database error
+		c.JSON(http.StatusInternalServerError, gin.H{"error": result.Error.Error()})
+		return
+	}
+
+	// Check if the user has already applied for the position
+	var existingApplication models.ReqPosition
+	result = initializers.DB.Preload("Applicants").Where("group_id = ? AND ID = ?", gid, pid).First(&existingApplication)
+	if result.Error == nil {
+		// Check if the user's profile is already in the Applicants list
+		for _, applicant := range existingApplication.Applicants {
+			if applicant.ID == userProfile.ID {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "You have already applied for this position!"})
+				return
+			}
+		}
+	} else if result.Error != gorm.ErrRecordNotFound {
+		// Other database error
+		c.JSON(http.StatusInternalServerError, gin.H{"error": result.Error.Error()})
+		return
+	}
+
+	// Add the user's profile to the Applicants list
+	if err := initializers.DB.Model(&existingApplication).Association("Applicants").Append(&userProfile); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Application submitted successfully!"})
+}

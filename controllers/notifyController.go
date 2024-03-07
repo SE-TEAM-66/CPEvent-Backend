@@ -12,20 +12,19 @@ import (
 func NotifyCreate(c *gin.Context) {
 	//Get data from req body
 	var body struct {
-		Rec_id uint
-		Sender string
-		Message string//accept or not
+		Rec_id  uint
+		Sender  string
+		Message string //accept or not
 	}
 	if c.Bind(&body) != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "failed to read body"})
 		return
 	}
 	notify := models.Notify{
-		Rec_id: body.Rec_id,
-		Sender:    body.Sender,
+		Rec_id:  body.Rec_id,
+		Sender:  body.Sender,
 		Message: body.Message,
-		IsRead:    false,
-
+		IsRead:  false,
 	}
 
 	if err := initializers.DB.Create(&notify); err.Error != nil {
@@ -58,12 +57,12 @@ func NotifyGet(c *gin.Context) {
 
 	// Fetch the profile using the user's ID
 	var notification []models.Notify
-	result := initializers.DB.Where("rec_id = ?", userModel.ID).Order("id DESC").Find(&notification)
+	result := initializers.DB.Where("rec_id = ?", userModel.Profile.ID).Order("id DESC").Find(&notification)
 	fmt.Println(userModel)
 	if result.Error != nil {
 		// Handle the error, e.g., return an error response
 		c.JSON(http.StatusInternalServerError, gin.H{"error": result.Error.Error()})
 		return
 	}
-    c.JSON(http.StatusOK, notification)
+	c.JSON(http.StatusOK, notification)
 }

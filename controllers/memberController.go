@@ -43,7 +43,7 @@ func AddMember(c *gin.Context) {
 
 	// Create a new member and associate it with the group
 	newMember := models.Member{
-		Role:      "", // You can set the default role for the member
+		Role:      "member", // You can set the default role for the member
 		ProfileID: user.Profile.ID,
 		GroupID:   group.ID,
 	}
@@ -78,6 +78,7 @@ func DeleteMember(c *gin.Context) {
 	// Find the member to delete
 	var memberToDelete models.Member
 	if err := initializers.DB.
+		Unscoped(). // Perform a hard delete
 		Where("group_id = ?", group.ID).
 		Where("profile_id = ?", requestBody.ProfileID).
 		First(&memberToDelete).Error; err != nil {
@@ -86,7 +87,7 @@ func DeleteMember(c *gin.Context) {
 	}
 
 	// Delete the member
-	if err := initializers.DB.Delete(&memberToDelete).Error; err != nil {
+	if err := initializers.DB.Unscoped().Delete(&memberToDelete).Error; err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to delete member"})
 		return
 	}
