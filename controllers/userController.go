@@ -24,40 +24,63 @@ func Signup(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "failed to read body"})
 		return
 	}
+	if  body.Email == "" || body.Password == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "one or more fields are empty"})
+		return
+	}
 	//Hash
 	hash, err := bcrypt.GenerateFromPassword([]byte(body.Password), 10)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "failed to hash password"})
 		return
 	}
-
 	//Create
-	user := models.User{
-        Email:    body.Email,
-        Password: string(hash),
-        Profile: models.Profile{
-            ProfilePicture :"",
-			Fname :"-",
-			Lname :"-",
-			Faculty :"",
-			Bio :"",
-			Phone :"",
-			Email :"",
-			Facebook :"",
-			Line :"",
-        },
-    }
+	user := models.User{Email: body.Email, Password: string(hash)}
 	result := initializers.DB.Create(&user)
 	if result.Error != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "failed to create user"})
 		return
 	}
+
 	initializers.DB.First(&user, "email = ?", body.Email)
+
+	// Save the user along with profile and experience
 	user_profile := models.Profile{
-		Fname:  body.Fname,
-		Lname:  body.Lname,
-		Email:  body.Email,
-		UserID: user.ID}
+		Fname:          body.Fname,
+		Lname:          body.Lname,
+		Email:          body.Email,
+		UserID:         user.ID,
+		ProfilePicture: "",
+		Faculty:        "",
+		Bio:            "",
+		Phone:          "",
+		Facebook:       "",
+		Line:           "",
+		Exp:            []models.Exp{},
+		Skill: []models.Skill{
+			{
+				Soft_skill: []models.Soft_skill{{Title: ""}},
+				Type:       "Soft_skill",
+			},
+			{
+				Lang_skill: []models.Lang_skill{{Title: ""}},
+				Type:       "Lang_skill",
+			},
+			{
+				DataAna: []models.DataAna{{DataAna: ""}},
+				Type:    "DataAna",
+			},
+		},
+	}
+	// Create a new experience
+	exp := models.Exp{
+		Description: "",
+	}
+
+
+	// Add the experience to the profile
+	user_profile.Exp = append(user_profile.Exp, exp)
+
 	result_profile := initializers.DB.Create(&user_profile)
 	if result_profile.Error != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "failed to create user"})

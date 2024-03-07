@@ -65,7 +65,7 @@ if err != nil {
 }
 
 func EditSoftSkill(c *gin.Context) {
-    // Get profile ID, skill ID, and soft skill ID from the request parameters
+    // Get profile ID from the request parameters
     profileID, err := strconv.ParseUint(c.Param("profileID"), 10, 64)
     if err != nil {
         c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ProfileID"})
@@ -74,57 +74,38 @@ func EditSoftSkill(c *gin.Context) {
 
     // Find the profile by ID
     var profile models.Profile
-    if err := initializers.DB.First(&profile, profileID).Error; err != nil {
+    if err := initializers.DB.Preload("Skill.Soft_skill").First(&profile, profileID).Error; err != nil {
         c.JSON(http.StatusNotFound, gin.H{"error": "Profile not found"})
         return
     }
 
-    skillID, err := strconv.ParseUint(c.Param("skillID"), 10, 64)
-    if err != nil {
-        c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid SkillID"})
+    // Check if there are any soft skills
+    if len(profile.Skill) == 0 || len(profile.Skill[0].Soft_skill) == 0 {
+        c.JSON(http.StatusNotFound, gin.H{"error": "No soft skills found for the profile"})
         return
     }
 
-    // Check if the soft skill exists and belongs to the correct profile's skill
-    var softSkill models.Soft_skill
-    if err := initializers.DB.Where("id = ? AND skill_id IN (SELECT id FROM skills WHERE profile_id = ?)", skillID, profileID).First(&softSkill).Error; err != nil {
-        c.JSON(http.StatusNotFound, gin.H{"error": "Soft skill not found or does not belong to the profile"})
+    // Parse the request body to get the new title for the first soft skill
+    var requestBody struct {
+        Title string `json:"title"`
+    }
+    if err := c.BindJSON(&requestBody); err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
         return
     }
 
-    softSkillID, err := strconv.ParseUint(c.Param("softskillID"), 10, 64)
-    if err != nil {
-        c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid SoftSkillID"})
+    // Update the title of the first soft skill
+    firstSoftSkill := profile.Skill[0].Soft_skill[0]
+    firstSoftSkill.Title = requestBody.Title
+    if err := initializers.DB.Save(&firstSoftSkill).Error; err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update soft skill"})
         return
     }
 
-    // Check if the soft skill ID matches the requested soft skill's ID
-    if softSkill.ID != uint(softSkillID) {
-        c.JSON(http.StatusBadRequest, gin.H{"error": "Soft skill ID mismatch"})
-        return
-    }
-
-    // Get soft skill details from the request body
-    var softSkillBody struct {
-        Title string `json:"title" binding:"required"`
-    }
-
-    if c.BindJSON(&softSkillBody) != nil {
-        c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to read body"})
-        return
-    }
-
-    // Update the soft skill details
-    softSkill.Title = softSkillBody.Title
-
-    // Save the updated soft skill to the database
-    if err := initializers.DB.Save(&softSkill).Error; err != nil {
-        c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to update soft skill"})
-        return
-    }
-
-    c.JSON(http.StatusOK, gin.H{"softSkill": softSkill})
+    c.JSON(http.StatusOK, gin.H{"message": "Soft skill updated successfully"})
 }
+
+
 
 func DeleteSoftSkill(c *gin.Context) {
     // Get profile ID and soft skill ID from the request parameters
@@ -180,10 +161,16 @@ func GetAllSoftSkills(c *gin.Context) {
 
     // Query soft skills associated with the profile
     var softSkills []models.Soft_skill
-    if err := initializers.DB.Where("skill_id IN (SELECT id FROM skills WHERE profile_id = ?)", profileID).Find(&softSkills).Error; err != nil {
+    if err := initializers.DB.Model(&models.Soft_skill{}).Select("title").Joins("JOIN skills ON soft_skills.skill_id = skills.id").Where("skills.profile_id = ?", profileID).Find(&softSkills).Error; err != nil {
         c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve soft skills"})
         return
     }
 
-    c.JSON(http.StatusOK, gin.H{"softSkills": softSkills})
+    // Extract titles from soft skills
+    var titles []string
+    for _, softSkill := range softSkills {
+        titles = append(titles, softSkill.Title)
+    }
+
+    c.JSON(http.StatusOK, gin.H{"softSkills": titles})
 }

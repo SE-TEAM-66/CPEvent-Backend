@@ -9,9 +9,6 @@ type Skill struct {
 	Soft_skill []Soft_skill 
 	Lang_skill []Lang_skill
 	DataAna []DataAna
-	DBmanage []DBmanage
-	GraphicDesign []GraphicDesign
-	Programming []Programming
-	WebDev []WebDev
+	
 	Type string
 }

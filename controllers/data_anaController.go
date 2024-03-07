@@ -74,45 +74,37 @@ func EditDataAnaSkill(c *gin.Context) {
 
     // Find the profile by ID
     var profile models.Profile
-    if err := initializers.DB.First(&profile, profileID).Error; err != nil {
+    if err := initializers.DB.Preload("Skill.DataAna").First(&profile, profileID).Error; err != nil {
         c.JSON(http.StatusNotFound, gin.H{"error": "Profile not found"})
         return
     }
 
-    skillID, err := strconv.ParseUint(c.Param("skillID"), 10, 64)
-    if err != nil {
-        c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid SkillID"})
+    // Check if there are any DataAna skills
+    if len(profile.Skill) == 0 || len(profile.Skill[2].DataAna) == 0 {
+        c.JSON(http.StatusNotFound, gin.H{"error": "No DataAna skills found for the profile"})
         return
     }
 
-    // Check if the DataAnaSkill exists and belongs to the correct profile's skill
-    var dataAnaSkill models.DataAna
-    if err := initializers.DB.Where("id = ? AND skill_id IN (SELECT id FROM skills WHERE profile_id = ?)", skillID, profileID).First(&dataAnaSkill).Error; err != nil {
-        c.JSON(http.StatusNotFound, gin.H{"error": "DataAna skill not found or does not belong to the profile"})
+    // Parse the request body to get the new dataAna for the first DataAna skill
+    var requestBody struct {
+        DataAna string `json:"dataAna"`
+    }
+    if err := c.BindJSON(&requestBody); err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
         return
     }
 
-    // Get DataAna skill details from the request body
-    var dataAnaSkillBody struct {
-        DataAna string `json:"dataAna" binding:"required"`
-    }
-
-    if c.BindJSON(&dataAnaSkillBody) != nil {
-        c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to read body"})
+    // Update the dataAna of the first DataAna skill
+    firstDataAnaSkill := profile.Skill[2].DataAna[0]
+    firstDataAnaSkill.DataAna = requestBody.DataAna
+    if err := initializers.DB.Save(&firstDataAnaSkill).Error; err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update DataAna skill"})
         return
     }
 
-    // Update the DataAna skill details
-    dataAnaSkill.DataAna = dataAnaSkillBody.DataAna
-
-    // Save the updated DataAna skill to the database
-    if err := initializers.DB.Save(&dataAnaSkill).Error; err != nil {
-        c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to update DataAna skill"})
-        return
-    }
-
-    c.JSON(http.StatusOK, gin.H{"dataAnaSkill": dataAnaSkill})
+    c.JSON(http.StatusOK, gin.H{"message": "DataAna skill updated successfully"})
 }
+
 
 func DeleteDataAnaSkill(c *gin.Context) {
     // Get profile ID and data analysis skill ID from the request parameters
@@ -152,26 +144,32 @@ func DeleteDataAnaSkill(c *gin.Context) {
 }
 
 func GetAllDataAnalysisSkills(c *gin.Context) {
-	// Get profile ID from the request parameters
-	profileID, err := strconv.ParseUint(c.Param("profileID"), 10, 64)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ProfileID"})
-		return
-	}
+    // Get profile ID from the request parameters
+    profileID, err := strconv.ParseUint(c.Param("profileID"), 10, 64)
+    if err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ProfileID"})
+        return
+    }
 
-	// Find the profile by ID
-	var profile models.Profile
-	if err := initializers.DB.First(&profile, profileID).Error; err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Profile not found"})
-		return
-	}
+    // Find the profile by ID
+    var profile models.Profile
+    if err := initializers.DB.First(&profile, profileID).Error; err != nil {
+        c.JSON(http.StatusNotFound, gin.H{"error": "Profile not found"})
+        return
+    }
 
-	// Query data analysis skills associated with the profile
-	var dataAnalysisSkills []models.DataAna
-	if err := initializers.DB.Where("skill_id IN (SELECT id FROM skills WHERE profile_id = ?)", profileID).Find(&dataAnalysisSkills).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve data analysis skills"})
-		return
-	}
+    // Query data analysis skills associated with the profile
+    var dataAnalysisSkills []models.DataAna
+    if err := initializers.DB.Model(&models.DataAna{}).Select("data_ana").Joins("JOIN skills ON data_anas.skill_id = skills.id").Where("skills.profile_id = ?", profileID).Find(&dataAnalysisSkills).Error; err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve data analysis skills"})
+        return
+    }
 
-	c.JSON(http.StatusOK, gin.H{"dataAnalysisSkills": dataAnalysisSkills})
+    // Extract data analysis from skills
+    var dataAnalysis []string
+    for _, skill := range dataAnalysisSkills {
+        dataAnalysis = append(dataAnalysis, skill.DataAna)
+    }
+
+    c.JSON(http.StatusOK, gin.H{"dataAnalysisSkills": dataAnalysis})
 }
