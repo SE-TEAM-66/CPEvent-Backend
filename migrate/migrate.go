@@ -11,10 +11,10 @@ func init() {
 }
 
 func main() {
-	groupDB()
+	GroupDB()
 }
 
-func groupDB() {
+func GroupDB() {
 	initializers.DB.AutoMigrate(&models.Group{})
 	initializers.DB.AutoMigrate(&models.ReqPosition{})
 	initializers.DB.AutoMigrate(&models.User{})

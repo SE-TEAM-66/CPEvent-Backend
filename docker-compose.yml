@@ -1,0 +1,70 @@
+version: '3.8'
+
+name: cpevent
+
+services:
+  backend:
+    image: ballatipat/cpevent-go-app:latest
+    ports:
+      - "4000:4000"
+    environment:
+      ALLOW_ORIGINS_URL: http://${HOST_API:-localhost}
+      DB_URL: root:password@tcp(db:3306)/mydb?charset=utf8mb4&parseTime=true
+      DB_MAX_RETRY_DURATION: 24h
+      DB_RETRY_DELAY: 5s
+    depends_on:
+      - db
+    networks:
+      - app-network
+    restart: always
+
+  frontend:
+    image: ballatipat/cpevent-react-app:latest
+    ports:
+      - 80:5173
+    environment:
+      VITE_REACT_APP_API_URL: http://${HOST_API:-localhost}:4000
+    networks:
+      - app-network
+    command: npm run dev
+    depends_on:
+      - backend
+    restart: always
+
+  db:
+    image: mysql:8.0
+    container_name: mysql_db
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: mydb
+    ports:
+      - "6033:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+    networks:
+      - app-network
+    restart: always
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: phpmyadmin
+    environment:
+      PMA_HOST: db
+      PMA_USER: root
+      PMA_PASSWORD: password
+    ports:
+      - "8081:80"
+    networks:
+      - app-network
+    restart: always
+
+networks:
+  app-network:
+    driver: bridge
+    ipam:
+     config:
+       - subnet: 10.5.0.0/16
+         gateway: 10.5.0.1
+
+volumes:
+  db_data:
