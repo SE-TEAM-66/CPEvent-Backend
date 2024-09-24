@@ -67,20 +67,10 @@ services:
     volumes:
       - minio_data:/data
     ports:
-      - "9000:9000"
       - "9001:9001"
+    networks:
+      - storage-network
     command: server /data --console-address ":9001"
-
-  minio_client:
-    image: minio/mc:latest
-    depends_on:
-      - minio
-    entrypoint: >
-      /bin/sh -c "
-      until (mc alias set myminio http://minio:9000 your_access_key your_secret_key); 
-      do echo 'Waiting for MinIO...'; sleep 3; done;
-      mc mb myminio/bucketname
-      "
 
 networks:
   app-network:
@@ -95,6 +85,12 @@ networks:
      config:
        - subnet: 10.5.0.0/16
          gateway: 10.5.0.1
+  storage-network:
+    driver: bridge
+    ipam:
+     config:
+       - subnet: 18.8.0.0/16
+         gateway: 18.8.0.1
 
 volumes:
   db_data:
