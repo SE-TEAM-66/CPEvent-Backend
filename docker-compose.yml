@@ -15,7 +15,7 @@ services:
     depends_on:
       - db
     networks:
-      - app-network
+      - api-network
     restart: always
 
   frontend:
@@ -42,7 +42,7 @@ services:
     volumes:
       - db_data:/var/lib/mysql
     networks:
-      - app-network
+      - api-network
     restart: always
 
   phpmyadmin:
@@ -55,11 +55,41 @@ services:
     ports:
       - "8081:80"
     networks:
-      - app-network
+      - api-network
     restart: always
+
+  minio:
+    image: minio/minio:latest
+    container_name: minio
+    environment:
+      - MINIO_ROOT_USER=root
+      - MINIO_ROOT_PASSWORD=password
+    volumes:
+      - minio_data:/data
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    command: server /data --console-address ":9001"
+
+  minio_client:
+    image: minio/mc:latest
+    depends_on:
+      - minio
+    entrypoint: >
+      /bin/sh -c "
+      until (mc alias set myminio http://minio:9000 your_access_key your_secret_key); 
+      do echo 'Waiting for MinIO...'; sleep 3; done;
+      mc mb myminio/bucketname
+      "
 
 networks:
   app-network:
+    driver: bridge
+    ipam:
+     config:
+       - subnet: 172.1.0.0/16
+         gateway: 172.1.0.1
+  api-network:
     driver: bridge
     ipam:
      config:
@@ -68,3 +98,4 @@ networks:
 
 volumes:
   db_data:
+  minio_data:
